@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configuração — Leitura Manual</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="max-w-lg mx-auto px-4 py-6 font-sans text-neutral-900 bg-white">
+  <div class="topo flex justify-between items-center mb-4">
+    <h1 class="text-2xl font-bold">Configuração</h1>
+    <a href="/registros" class="text-base text-neutral-900 underline decoration-neutral-900">← Registros</a>
+  </div>
+
+  <h2 class="text-lg font-semibold mt-4 mb-1">Livros mapeados</h2>
+  <p class="text-sm mb-2 text-neutral-700">
+    Lista de livros (título + md5) conhecidos pelo servidor. Livros novos são cadastrados
+    automaticamente na primeira leitura enviada pelo plugin.
+  </p>
+  <div id="lista-livros"></div>
+  <button class="btn-add bg-white border-2 border-neutral-900 rounded px-3.5 py-1.5 mt-1 text-sm hover:bg-neutral-100" onclick="addLivro()">+ Adicionar livro</button>
+
+  <button class="btn-salvar block w-full px-3 py-3 mt-5 bg-neutral-900 text-white text-lg font-bold border-2 border-neutral-900 rounded hover:bg-neutral-800" onclick="salvar()">Salvar configuração</button>
+  <div class="mensagem text-center mt-3 font-bold min-h-[1.2em] text-red-700" id="mensagem"></div>
+
+  <script>
+    let livros = [];
+
+    async function carregar() {
+      const res = await fetch("/api/opcoes");
+      const data = await res.json();
+      livros = data.livros || [];
+      render();
+    }
+
+    function render() {
+      document.getElementById("lista-livros").innerHTML = livros.map(function(li, i) {
+        return '<div class="item flex items-center gap-2 border-2 border-neutral-900 rounded p-2 mb-2">'
+          + '<div class="ordenar flex flex-col">'
+          +   '<button onclick="move(livros,' + i + ',-1)" class="bg-white border border-neutral-900 w-[22px] h-[18px] text-[0.7em] leading-none cursor-pointer hover:bg-neutral-100">▲</button>'
+          +   '<button onclick="move(livros,' + i + ',1)" class="bg-white border border-neutral-900 w-[22px] h-[18px] text-[0.7em] leading-none cursor-pointer hover:bg-neutral-100">▼</button>'
+          + '</div>'
+          + '<div class="flex flex-col flex-1 gap-1">'
+          +   '<input type="text" placeholder="Título" value="' + esc(li.titulo || "") + '" oninput="livros[' + i + '].titulo=this.value" class="w-full px-1.5 py-1 border border-neutral-900 rounded text-sm">'
+          +   '<input type="text" placeholder="md5 (32 hex)" value="' + esc(li.md5 || "") + '" oninput="livros[' + i + '].md5=this.value" class="w-full px-1.5 py-1 border border-neutral-900 rounded text-sm font-mono">'
+          + '</div>'
+          + '<button class="remover bg-white border border-neutral-900 rounded px-2 py-0.5 cursor-pointer hover:bg-neutral-100" onclick="removeAt(livros,' + i + ')">✕</button>'
+          + "</div>";
+      }).join("");
+    }
+
+    function esc(s) {
+      return String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+    }
+
+    function move(arr, i, delta) {
+      var j = i + delta;
+      if (j < 0 || j >= arr.length) return;
+      var tmp = arr[i];
+      arr[i] = arr[j];
+      arr[j] = tmp;
+      render();
+    }
+
+    function removeAt(arr, i) {
+      arr.splice(i, 1);
+      render();
+    }
+
+    function addLivro() {
+      livros.push({ id: null, titulo: "", md5: "" });
+      render();
+    }
+
+    async function salvar() {
+      var validos = livros.filter(function(li) {
+        var md5 = (li.md5 || "").trim().toLowerCase();
+        var titulo = (li.titulo || "").trim();
+        return titulo !== "" && /^[0-9a-f]{32}$/.test(md5);
+      }).map(function(li) {
+        return { titulo: li.titulo.trim(), md5: li.md5.trim().toLowerCase() };
+      });
+      const res = await fetch("/api/config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ livros: validos }),
+      });
+      const data = await res.json();
+      document.getElementById("mensagem").textContent = data.ok
+        ? "✓ Configuração salva!"
+        : "Erro: " + (data.error || "desconhecido");
+      document.getElementById("mensagem").classList.toggle("text-red-700", !data.ok);
+      if (data.ok) {
+        livros = data.livros;
+        render();
+      }
+    }
+
+    carregar();
+  </script>
+</body>
+</html>

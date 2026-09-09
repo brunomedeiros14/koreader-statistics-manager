@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registros — Leitura Manual</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="max-w-4xl mx-auto px-4 py-6 font-sans text-neutral-900 bg-white">
+  <div class="topo flex justify-between items-center mb-4">
+    <h1 class="text-2xl font-bold">Registros de leitura</h1>
+    <div class="topo-links flex gap-3 text-base">
+      <a href="/config" class="text-neutral-900 underline decoration-neutral-900">Configurar</a>
+      <a href="/" class="text-neutral-900 underline decoration-neutral-900">← Formulário</a>
+    </div>
+  </div>
+
+  <div class="filtros border-2 border-neutral-900 p-3 mb-4 flex flex-wrap gap-3 items-end rounded">
+    <div>
+      <label for="f-livro" class="block text-sm font-bold mb-0.5">Livro</label>
+      <select id="f-livro" class="px-2 py-1 border border-neutral-900 bg-white"><option value="">Todos</option></select>
+    </div>
+    <div>
+      <label for="f-sync" class="block text-sm font-bold mb-0.5">Estampado no KOReader</label>
+      <select id="f-sync" class="px-2 py-1 border border-neutral-900 bg-white">
+        <option value="">Todos</option>
+        <option value="0">Em espera</option>
+        <option value="1">Sincronizado</option>
+        <option value="2">Pulada</option>
+      </select>
+    </div>
+    <div>
+      <label for="f-inicio" class="block text-sm font-bold mb-0.5">A partir de</label>
+      <input type="date" id="f-inicio" class="px-2 py-1 border border-neutral-900 bg-white">
+    </div>
+    <div>
+      <label for="f-fim" class="block text-sm font-bold mb-0.5">Até</label>
+      <input type="date" id="f-fim" class="px-2 py-1 border border-neutral-900 bg-white">
+    </div>
+    <button onclick="aplicarFiltros()" class="px-3 py-1.5 border border-neutral-900 bg-neutral-900 text-white rounded hover:bg-neutral-800">Filtrar</button>
+    <button onclick="exportarCsv()" class="px-3 py-1.5 border border-neutral-900 bg-white rounded hover:bg-neutral-100">Exportar CSV</button>
+  </div>
+
+  <div class="stats-cards grid grid-cols-2 sm:grid-cols-4 gap-2 mb-5" id="stats"></div>
+  <div class="series grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+    <div class="serie border-2 border-neutral-900 p-2.5 rounded" id="serie-dia"><h3 class="text-base font-semibold mb-2">Por dia</h3><div class="serie-corpo"></div></div>
+    <div class="serie border-2 border-neutral-900 p-2.5 rounded" id="serie-mes"><h3 class="text-base font-semibold mb-2">Por mês</h3><div class="serie-corpo"></div></div>
+  </div>
+
+  <div class="overflow-x-auto mb-3">
+    <table class="w-full border-collapse text-sm" id="tabela">
+      <thead>
+        <tr>
+          <th class="border border-neutral-900 px-2 py-1.5 text-left bg-neutral-900 text-white">ID</th>
+          <th class="border border-neutral-900 px-2 py-1.5 text-left bg-neutral-900 text-white">Livro</th>
+          <th class="border border-neutral-900 px-2 py-1.5 text-left bg-neutral-900 text-white">Início</th>
+          <th class="border border-neutral-900 px-2 py-1.5 text-left bg-neutral-900 text-white">Fim</th>
+          <th class="border border-neutral-900 px-2 py-1.5 text-left bg-neutral-900 text-white tab-num">P. ini</th>
+          <th class="border border-neutral-900 px-2 py-1.5 text-left bg-neutral-900 text-white tab-num">P. fim</th>
+          <th class="border border-neutral-900 px-2 py-1.5 text-left bg-neutral-900 text-white tab-num">Tot.</th>
+          <th class="border border-neutral-900 px-2 py-1.5 text-left bg-neutral-900 text-white">KOReader</th>
+          <th class="border border-neutral-900 px-2 py-1.5 text-left bg-neutral-900 text-white"></th>
+        </tr>
+      </thead>
+      <tbody id="corpo"></tbody>
+    </table>
+  </div>
+  <div class="vazio text-center my-5 font-bold" id="vazio" style="display:none;">Nenhum registro encontrado.</div>
+
+  <div class="pagina flex justify-center items-center gap-3 mb-5 text-sm">
+    <button id="btn-ant" onclick="irPagina(-1)" class="px-3.5 py-1 border border-neutral-900 bg-white rounded hover:bg-neutral-100 disabled:opacity-30 disabled:hover:bg-white">‹ Anterior</button>
+    <span id="info-pagina"></span>
+    <button id="btn-prox" onclick="irPagina(1)" class="px-3.5 py-1 border border-neutral-900 bg-white rounded hover:bg-neutral-100 disabled:opacity-30 disabled:hover:bg-white">Próxima ›</button>
+  </div>
+
+  <dialog id="dialog-editar" class="border-[3px] border-neutral-900 p-5 max-w-md w-[92%] rounded bg-white text-neutral-900">
+    <h2 class="text-lg font-semibold mb-3">Editar registro <span id="edit-id"></span></h2>
+    <div id="edit-form"></div>
+    <div class="dialog-botoes flex gap-2 justify-end mt-3.5">
+      <button class="btn-cancelar px-3.5 py-1.5 border-2 border-neutral-900 bg-white rounded hover:bg-neutral-100" onclick="fecharEditar()">Cancelar</button>
+      <button class="btn-confirmar px-3.5 py-1.5 border-2 border-neutral-900 bg-neutral-900 text-white font-bold rounded hover:bg-neutral-800" onclick="salvarEdicao()">Salvar</button>
+    </div>
+  </dialog>
+
+  <script>
+    let livros = [];
+    let pagina = 1;
+    let totalPaginas = 1;
+    let editando = null;
+
+    const POR_PAGINA = 10;
+
+    async function init() {
+      const res = await fetch("/api/opcoes");
+      const data = await res.json();
+      livros = data.livros || [];
+      const sel = document.getElementById("f-livro");
+      livros.forEach(function(li) {
+        const opt = document.createElement("option");
+        opt.value = li.md5 || "";
+        opt.textContent = li.titulo;
+        sel.appendChild(opt);
+      });
+    }
+
+    function queryFiltros() {
+      const params = new URLSearchParams({ limit: String(POR_PAGINA), page: String(pagina) });
+      const livro = document.getElementById("f-livro").value;
+      const sync = document.getElementById("f-sync").value;
+      const inicio = document.getElementById("f-inicio").value;
+      const fim = document.getElementById("f-fim").value;
+      if (livro) params.set("md5", livro);
+      if (sync !== "") params.set("sincronizada", sync);
+      if (inicio) params.set("data_inicio", inicio + "T00:00");
+      if (fim) params.set("data_fim", fim + "T23:59");
+      return params;
+    }
+
+    async function carregar() {
+      const params = queryFiltros();
+      const res = await fetch("/api/leitura?" + params.toString());
+      const data = await res.json();
+      const corpo = document.getElementById("corpo");
+      corpo.innerHTML = "";
+
+      if (data.total === 0) {
+        document.getElementById("vazio").style.display = "block";
+      } else {
+        document.getElementById("vazio").style.display = "none";
+      }
+
+      const html = data.registros.map(function(r) {
+        var fmt = function(v) {
+          var d = new Date(v);
+          if (isNaN(d.getTime())) return v;
+          return d.toLocaleDateString("pt-BR") + " " + d.toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"});
+        };
+        var syncBadge = r.leitura_sincronizada === 1
+          ? '<span class="px-1.5 py-0.5 bg-neutral-900 text-white text-xs rounded">✓</span>'
+          : r.leitura_sincronizada === 2
+            ? '<span class="px-1.5 py-0.5 border border-neutral-900 text-xs rounded">pulada</span>'
+            : '<span class="px-1.5 py-0.5 border border-neutral-900 text-xs rounded">em espera</span>';
+        return "<tr>"
+          + "<td class=\"border border-neutral-900 px-2 py-1.5\">" + r.id + "</td>"
+          + "<td class=\"border border-neutral-900 px-2 py-1.5\">" + (r.titulo || "—") + "</td>"
+          + "<td class=\"border border-neutral-900 px-2 py-1.5\">" + fmt(r.data_hora_1) + "</td>"
+          + "<td class=\"border border-neutral-900 px-2 py-1.5\">" + fmt(r.data_hora_2) + "</td>"
+          + '<td class="tab-num border border-neutral-900 px-2 py-1.5 text-right">' + r.numero_1 + "</td>"
+          + '<td class="tab-num border border-neutral-900 px-2 py-1.5 text-right">' + r.numero_2 + "</td>"
+          + '<td class="tab-num border border-neutral-900 px-2 py-1.5 text-right">' + r.numero_3 + "</td>"
+          + '<td class="border border-neutral-900 px-2 py-1.5 text-center">' + syncBadge + "</td>"
+          + "<td class=\"border border-neutral-900 px-2 py-1.5 whitespace-nowrap\">"
+          + '<button class="acao acao-editar px-2 py-0.5 border border-neutral-900 bg-white rounded text-sm mr-1 hover:bg-neutral-100" onclick="editar(' + r.id + ')">Editar</button>'
+          + '<button class="acao acao-excluir px-2 py-0.5 border border-neutral-900 bg-white rounded text-sm hover:bg-neutral-100" onclick="excluir(' + r.id + ')">Excluir</button>'
+          + "</td>"
+          + "</tr>";
+      }).join("");
+      corpo.innerHTML = html;
+
+      totalPaginas = Math.max(1, Math.ceil(data.total / POR_PAGINA));
+      document.getElementById("info-pagina").textContent = "Página " + data.page + " de " + totalPaginas + " (" + data.total + " registros)";
+      document.getElementById("btn-ant").disabled = data.page <= 1;
+      document.getElementById("btn-prox").disabled = data.page >= totalPaginas;
+
+      carregarStats();
+    }
+
+    async function carregarStats() {
+      const res = await fetch("/api/stats");
+      const s = await res.json();
+      var livros = (s.por_tipo || []).map(function(t) { return t.tipo + ": " + t.n; }).join(" · ");
+      document.getElementById("stats").innerHTML =
+        '<div class="stat-card border-2 border-neutral-900 p-2.5 rounded"><div class="valor text-xl font-bold">' + s.total + '</div><div class="rotulo text-sm mt-0.5">Total</div></div>'
+        + '<div class="stat-card border-2 border-neutral-900 p-2.5 rounded"><div class="valor text-xl font-bold">' + fmtNum(s.duracao_media_horas) + ' h</div><div class="rotulo text-sm mt-0.5">Duração média</div></div>'
+        + '<div class="stat-card border-2 border-neutral-900 p-2.5 rounded"><div class="valor text-xl font-bold">' + fmtNum(s.media_num1) + '</div><div class="rotulo text-sm mt-0.5">Média pág. inicial</div></div>'
+        + '<div class="stat-card border-2 border-neutral-900 p-2.5 rounded"><div class="valor text-xl font-bold">' + fmtNum(s.media_num2) + '</div><div class="rotulo text-sm mt-0.5">Média pág. final</div></div>'
+        + '<div class="stat-card border-2 border-neutral-900 p-2.5 rounded"><div class="valor text-xl font-bold">' + fmtNum(s.media_num3) + '</div><div class="rotulo text-sm mt-0.5">Média total págs.</div></div>'
+        + '<div class="stat-card border-2 border-neutral-900 p-2.5 rounded"><div class="valor text-xl font-bold">' + s.primeira_data + '</div><div class="rotulo text-sm mt-0.5">Primeira</div></div>'
+        + '<div class="stat-card border-2 border-neutral-900 p-2.5 rounded"><div class="valor text-xl font-bold">' + s.ultima_data + '</div><div class="rotulo text-sm mt-0.5">Última</div></div>'
+        + '<div class="stat-card border-2 border-neutral-900 p-2.5 rounded"><div class="valor text-xl font-bold">' + livros + '</div><div class="rotulo text-sm mt-0.5">Por livro</div></div>';
+
+      document.querySelector("#serie-dia .serie-corpo").innerHTML =
+        '<table class="w-full text-sm"><thead><tr><th class="border border-neutral-900 px-1.5 py-0.5 text-left bg-neutral-900 text-white">Dia</th><th class="border border-neutral-900 px-1.5 py-0.5 text-left bg-neutral-900 text-white">Qtd</th><th class="border border-neutral-900 px-1.5 py-0.5 text-left bg-neutral-900 text-white">Horas</th></tr></thead><tbody>'
+        + (s.por_dia || []).map(function(d) {
+          return "<tr><td class=\"border border-neutral-900 px-1.5 py-0.5\">" + d.dia + "</td><td class=\"border border-neutral-900 px-1.5 py-0.5\">" + d.n + "</td><td class=\"border border-neutral-900 px-1.5 py-0.5\">" + fmtNum(d.horas) + "</td></tr>";
+        }).join("") + "</tbody></table>";
+
+      document.querySelector("#serie-mes .serie-corpo").innerHTML =
+        '<table class="w-full text-sm"><thead><tr><th class="border border-neutral-900 px-1.5 py-0.5 text-left bg-neutral-900 text-white">Mês</th><th class="border border-neutral-900 px-1.5 py-0.5 text-left bg-neutral-900 text-white">Qtd</th><th class="border border-neutral-900 px-1.5 py-0.5 text-left bg-neutral-900 text-white">Horas</th></tr></thead><tbody>'
+        + (s.por_mes || []).map(function(m) {
+          return "<tr><td class=\"border border-neutral-900 px-1.5 py-0.5\">" + m.mes + "</td><td class=\"border border-neutral-900 px-1.5 py-0.5\">" + m.n + "</td><td class=\"border border-neutral-900 px-1.5 py-0.5\">" + fmtNum(m.horas) + "</td></tr>";
+        }).join("") + "</tbody></table>";
+    }
+
+    function fmtNum(v) {
+      var n = Number(v);
+      return Number.isInteger(n) ? n.toString() : n.toFixed(1);
+    }
+
+    function aplicarFiltros() {
+      pagina = 1;
+      carregar();
+    }
+
+    function irPagina(delta) {
+      pagina = Math.max(1, Math.min(totalPaginas, pagina + delta));
+      carregar();
+    }
+
+    function exportarCsv() {
+      const params = queryFiltros();
+      params.delete("limit");
+      params.delete("page");
+      window.location.href = "/api/export.csv?" + params.toString();
+    }
+
+    async function editar(id) {
+      const res = await fetch("/api/leitura?limit=1000");
+      const data = await res.json();
+      const r = data.registros.find(function(x) { return x.id === id; });
+      if (!r) return;
+      editando = r;
+
+      document.getElementById("edit-id").textContent = r.id;
+
+      var livroOptions = livros.map(function(li) {
+        return '<option value="' + (li.md5 || "") + '"' + (li.md5 === r.md5 ? " selected" : "") + ">"
+          + li.titulo + "</option>";
+      }).join("");
+
+      var iso = function(v) {
+        var d = new Date(v);
+        var pad = function(n) { return String(n).padStart(2, "0"); };
+        return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate())
+          + "T" + pad(d.getHours()) + ":" + pad(d.getMinutes());
+      };
+
+      document.getElementById("edit-form").innerHTML =
+        '<label for="edit-md5" class="block font-bold text-sm mt-2">Livro</label>'
+        + '<select id="edit-md5" class="w-full px-1.5 py-1 border-2 border-neutral-900 rounded text-sm bg-white">' + livroOptions + "</select>"
+        + '<label for="edit-dt1" class="block font-bold text-sm mt-2">Início da leitura</label>'
+        + '<input type="datetime-local" id="edit-dt1" value="' + iso(r.data_hora_1) + '" class="w-full px-1.5 py-1 border-2 border-neutral-900 rounded text-sm">'
+        + '<label for="edit-dt2" class="block font-bold text-sm mt-2">Término da leitura</label>'
+        + '<input type="datetime-local" id="edit-dt2" value="' + iso(r.data_hora_2) + '" class="w-full px-1.5 py-1 border-2 border-neutral-900 rounded text-sm">'
+        + '<label for="edit-num-1" class="block font-bold text-sm mt-2">Página inicial da leitura</label>'
+        + '<input type="number" id="edit-num-1" min="1" value="' + (r.numero_1 ?? 1) + '" class="w-full px-1.5 py-1 border-2 border-neutral-900 rounded text-sm">'
+        + '<label for="edit-num-2" class="block font-bold text-sm mt-2">Página final da leitura</label>'
+        + '<input type="number" id="edit-num-2" min="1" value="' + (r.numero_2 ?? 1) + '" class="w-full px-1.5 py-1 border-2 border-neutral-900 rounded text-sm">'
+        + '<label for="edit-num-3" class="block font-bold text-sm mt-2">Total de páginas do livro físico</label>'
+        + '<input type="number" id="edit-num-3" min="1" value="' + (r.numero_3 ?? 1) + '" class="w-full px-1.5 py-1 border-2 border-neutral-900 rounded text-sm">';
+
+      document.getElementById("dialog-editar").showModal();
+    }
+
+    function fecharEditar() {
+      document.getElementById("dialog-editar").close();
+      editando = null;
+    }
+
+    async function salvarEdicao() {
+      if (!editando) return;
+      var md5 = document.getElementById("edit-md5").value;
+      var livroObj = livros.find(function(li) { return li.md5 === md5; });
+      var dados = {
+        md5: md5,
+        titulo: livroObj ? livroObj.titulo : undefined,
+        data_hora_1: document.getElementById("edit-dt1").value,
+        data_hora_2: document.getElementById("edit-dt2").value,
+        numero_1: parseInt(document.getElementById("edit-num-1").value, 10),
+        numero_2: parseInt(document.getElementById("edit-num-2").value, 10),
+        numero_3: parseInt(document.getElementById("edit-num-3").value, 10),
+      };
+
+      const res = await fetch("/api/leitura?id=" + editando.id, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dados),
+      });
+      const result = await res.json();
+      fecharEditar();
+      if (result.ok) {
+        carregar();
+      } else {
+        alert("Erro: " + result.error);
+      }
+    }
+
+    async function excluir(id) {
+      if (!confirm("Excluir registro " + id + "?")) return;
+      const res = await fetch("/api/leitura?id=" + id, { method: "DELETE" });
+      const data = await res.json();
+      if (data.ok) {
+        carregar();
+      } else {
+        alert("Erro: " + data.error);
+      }
+    }
+
+    init().then(function() { carregar(); });
+  </script>
+</body>
+</html>

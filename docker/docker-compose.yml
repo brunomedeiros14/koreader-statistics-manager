@@ -1,0 +1,24 @@
+services:
+  leitura-manual:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: leitura-manual-server:latest
+    container_name: leitura-manual-server
+    restart: unless-stopped
+    ports:
+      # Só expõe na máquina local; para acessar de outros dispositivos
+      # (ex.: plugin no KOReader), use "0.0.0.0:3000:3000".
+      - "127.0.0.1:3000:3000"
+    environment:
+      PORT: "3000"
+      # DATA_DIR: "/app/data"   # default; troque se quiser outro caminho
+    volumes:
+      # O caminho relativo é avaliado a partir de docker/, por isso "../data".
+      - ../data:/app/data
+    healthcheck:
+      test: ["CMD", "bun", "-e", "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
