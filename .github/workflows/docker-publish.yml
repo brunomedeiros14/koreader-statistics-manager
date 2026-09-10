@@ -43,4 +43,5 @@ jobs:
           file: ./docker/Dockerfile
           push: true
           platforms: linux/arm64
-          tags: latest
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
