@@ -1,65 +1,40 @@
 # syntax=docker/dockerfile:1
 
+# Estágio base compartilhado (imagem oficial do Bun, Alpine = imagem pequena)
 FROM oven/bun:1-alpine AS base
-
 WORKDIR /app
-
 ENV NODE_ENV=production
 
-# ------------------------------------------------------------
-# Dependencies
-# ------------------------------------------------------------
-
+# --- Dependências (estágio descartável: mantém cache/source fora da imagem) --
 FROM base AS deps
-
 COPY package.json bun.lock ./
-
 RUN bun install --frozen-lockfile --production
 
-
-# ------------------------------------------------------------
-# Runtime
-# ------------------------------------------------------------
-
+# --- Runtime -----------------------------------------------------------------
 FROM base AS runner
-
 ARG PORT=3000
+ENV PORT=$PORT
 
-ENV PORT=${PORT}
+# su-exec: entrypoint roda como root para chown do volume e então cai para app
+RUN apk add --no-cache su-exec \
+  && addgroup -S app \
+  && adduser -S -G app app \
+  && mkdir -p /app/data \
+  && chown -R app:app /app
 
-# Cria usuário/grupo explicitamente
-RUN addgroup -S -g 1001 app \
-    && adduser -S -D -u 1001 -G app app \
-    && mkdir -p /app/data \
-    && chown -R 1001:1001 /app
-
-COPY --from=deps --chown=1001:1001 \
-    /app/node_modules \
-    ./node_modules
-
-COPY --chown=1001:1001 \
-    package.json bun.lock ./
-
-COPY --chown=1001:1001 \
-    src ./src
-
-COPY --chown=1001:1001 \
-    docker/entrypoint.sh \
-    /usr/local/bin/entrypoint.sh
-
+# Imagem só com o essencial: node_modules de produção + src (TS roda nativo no Bun)
+COPY --from=deps --chown=app:app /app/node_modules ./node_modules
+COPY --chown=app:app package.json bun.lock ./
+COPY --chown=app:app src ./src
+COPY --chown=app:app docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-USER 1001:1001
-
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 EXPOSE 3000
+VOLUME /app/data
 
-VOLUME ["/app/data"]
-
-HEALTHCHECK \
-    --interval=30s \
-    --timeout=5s \
-    --start-period=10s \
-    --retries=3 \
-    CMD ["bun", "-e", "fetch('http://127.0.0.1:' + (process.env.PORT || '3000') + '/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+# Healthcheck sem dependências externas (usa o próprio Bun)
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD ["bun", "-e", "fetch('http://127.0.0.1:' + (process.env.PORT || '3000') + '/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
 
 CMD ["bun", "src/server.ts"]
