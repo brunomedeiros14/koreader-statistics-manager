@@ -1,221 +1,288 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Leitura Manual</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { darkMode: "class" };</script>
+  <style type="text/tailwindcss">
+    @layer components {
+      .card { @apply bg-white dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800 shadow-sm; }
+      .label { @apply block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5; }
+      .input {
+        color-scheme: dark;
+        @apply w-full h-10 px-3 py-2 text-sm text-neutral-900 dark:text-white bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-600 rounded-md shadow-sm transition-all placeholder:text-neutral-400 dark:placeholder:text-neutral-400 hover:border-neutral-400 dark:hover:border-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-400/40 dark:focus:ring-neutral-400/30 focus:border-neutral-500 dark:focus:border-neutral-400;
+      }
+      .btn { @apply inline-flex items-center justify-center gap-1.5 h-9 px-4 text-sm font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-neutral-950 disabled:opacity-50 disabled:pointer-events-none; }
+      .btn-outline { @apply border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-800 focus:ring-neutral-900/10 dark:focus:ring-neutral-400/30; }
+      .btn-primary { @apply bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 hover:bg-neutral-700 dark:hover:bg-neutral-200 focus:ring-neutral-900/50 dark:focus:ring-neutral-400/50; }
+    }
+  </style>
 </head>
-<body class="max-w-lg mx-auto px-4 py-6 font-sans text-neutral-900 bg-white">
-  <div class="flex justify-between items-center mb-1">
-    <h1 class="text-2xl font-bold">Leitura Manual</h1>
-    <a href="/registros" class="text-base text-neutral-900 underline decoration-neutral-900">Ver registros →</a>
+<body class="min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-50 antialiased">
+  <div class="mx-auto max-w-lg px-4 py-8">
+    <div class="mb-6 flex items-center justify-between">
+      <h1 class="text-2xl font-semibold tracking-tight">Leitura Manual</h1>
+      <a href="/registros" class="text-sm text-neutral-500 dark:text-neutral-400 underline-offset-4 hover:text-neutral-900 dark:hover:text-neutral-50 hover:underline">Ver registros →</a>
+    </div>
+
+    <section id="secao-livro" class="card mb-6">
+      <div class="border-b border-neutral-200 dark:border-neutral-800 px-4 py-3">
+        <h2 class="text-sm font-semibold">Livro</h2>
+      </div>
+      <div class="p-1.5" id="lista"></div>
+      <div id="sem-livros" class="hidden px-4 py-3 text-sm text-neutral-500 dark:text-neutral-400">Nenhum livro mapeado. Cadastre livros em <a href="/config" class="underline underline-offset-4 hover:text-neutral-900 dark:hover:text-neutral-100">Configuração</a>.</div>
+    </section>
+
+    <section class="card mb-6">
+      <div class="border-b border-neutral-200 dark:border-neutral-800 px-4 py-3">
+        <h2 class="text-sm font-semibold">Período da leitura</h2>
+      </div>
+      <div class="space-y-4 p-4">
+        <div>
+          <label for="dt1" class="label">Início da leitura</label>
+          <input type="datetime-local" id="dt1" class="input">
+          <p id="erro-dt1" class="mt-1.5 min-h-[1.2em] text-xs font-medium text-red-600 dark:text-red-400"></p>
+        </div>
+        <div>
+          <label for="dt2" class="label">Término da leitura</label>
+          <input type="datetime-local" id="dt2" class="input">
+          <p id="erro-dt2" class="mt-1.5 min-h-[1.2em] text-xs font-medium text-red-600 dark:text-red-400"></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card mb-6">
+      <div class="border-b border-neutral-200 dark:border-neutral-800 px-4 py-3">
+        <h2 class="text-sm font-semibold">Páginas</h2>
+      </div>
+      <div class="space-y-4 p-4">
+        <div>
+          <label for="num-1" class="label">Página inicial da leitura</label>
+          <input type="number" id="num-1" min="1" value="1" class="input">
+          <p id="erro-num-1" class="mt-1.5 min-h-[1.2em] text-xs font-medium text-red-600 dark:text-red-400"></p>
+        </div>
+        <div>
+          <label for="num-2" class="label">Página final da leitura</label>
+          <input type="number" id="num-2" min="1" value="1" class="input">
+          <p id="erro-num-2" class="mt-1.5 min-h-[1.2em] text-xs font-medium text-red-600 dark:text-red-400"></p>
+        </div>
+        <div>
+          <label for="num-3" class="label">Total de páginas do livro físico</label>
+          <input type="number" id="num-3" min="1" value="1" class="input">
+          <p id="erro-num-3" class="mt-1.5 min-h-[1.2em] text-xs font-medium text-red-600 dark:text-red-400"></p>
+        </div>
+      </div>
+    </section>
+
+    <button id="btn-salvar" class="btn btn-primary w-full h-11 text-base">Salvar</button>
+
+    <dialog id="dialog" class="card w-[92%] max-w-md p-0 backdrop:bg-neutral-900/40 dark:backdrop:bg-black/70">
+      <div class="border-b border-neutral-200 dark:border-neutral-800 px-4 py-3">
+        <h2 class="text-base font-semibold">Confirmar leitura</h2>
+      </div>
+      <div id="resumo" class="px-4 py-4 text-sm leading-relaxed text-neutral-700 dark:text-neutral-300"></div>
+      <div class="flex justify-end gap-2 border-t border-neutral-200 dark:border-neutral-800 px-4 py-3">
+        <button id="btn-cancelar" class="btn btn-outline">Cancelar</button>
+        <button id="btn-confirmar" class="btn btn-primary">Confirmar</button>
+      </div>
+    </dialog>
   </div>
 
-  <section id="secao-livro" class="mb-5">
-    <h2 class="text-lg font-semibold mb-2">Livro</h2>
-    <div class="border-2 border-neutral-900 rounded" id="lista"></div>
-  </section>
-
-  <section class="mb-5">
-    <div class="mb-3">
-      <label for="dt1" class="block mb-1 font-semibold">Início da leitura</label>
-      <input type="datetime-local" id="dt1" class="w-full px-2 py-2 border-2 border-neutral-900 text-base bg-white">
-      <div class="erro text-sm font-semibold text-red-700 mt-0.5 min-h-[1.2em]" id="erro-dt1"></div>
-    </div>
-    <div class="mb-3">
-      <label for="dt2" class="block mb-1 font-semibold">Término da leitura</label>
-      <input type="datetime-local" id="dt2" class="w-full px-2 py-2 border-2 border-neutral-900 text-base bg-white">
-      <div class="erro text-sm font-semibold text-red-700 mt-0.5 min-h-[1.2em]" id="erro-dt2"></div>
-    </div>
-  </section>
-
-  <section class="mb-5">
-    <div class="mb-3">
-      <label for="num-1" class="block mb-1 font-semibold">Página inicial da leitura</label>
-      <input type="number" id="num-1" min="1" value="1" class="w-full px-2 py-2 border-2 border-neutral-900 text-base bg-white">
-      <div class="erro text-sm font-semibold text-red-700 mt-0.5 min-h-[1.2em]" id="erro-num-1"></div>
-    </div>
-    <div class="mb-3">
-      <label for="num-2" class="block mb-1 font-semibold">Página final da leitura</label>
-      <input type="number" id="num-2" min="1" value="1" class="w-full px-2 py-2 border-2 border-neutral-900 text-base bg-white">
-      <div class="erro text-sm font-semibold text-red-700 mt-0.5 min-h-[1.2em]" id="erro-num-2"></div>
-    </div>
-    <div class="mb-3">
-      <label for="num-3" class="block mb-1 font-semibold">Total de páginas do livro físico</label>
-      <input type="number" id="num-3" min="1" value="1" class="w-full px-2 py-2 border-2 border-neutral-900 text-base bg-white">
-      <div class="erro text-sm font-semibold text-red-700 mt-0.5 min-h-[1.2em]" id="erro-num-3"></div>
-    </div>
-  </section>
-
-  <button class="btn-salvar block w-full mt-5 px-3 py-3 bg-neutral-900 text-white text-lg font-bold border-2 border-neutral-900 rounded hover:bg-neutral-800" onclick="abrirDialog()">Salvar</button>
-
-  <dialog id="dialog" class="border-[3px] border-neutral-900 p-5 max-w-md w-[90%] rounded bg-white text-neutral-900">
-    <h2 class="text-lg font-semibold mb-3">Confirmar leitura</h2>
-    <div class="resumo mb-4 leading-relaxed" id="resumo"></div>
-    <div class="dialog-botoes flex gap-2 justify-end">
-      <button class="btn-cancelar px-4 py-2 border-2 border-neutral-900 bg-white rounded hover:bg-neutral-100" onclick="fecharDialog()">Cancelar</button>
-      <button class="btn-confirmar px-4 py-2 border-2 border-neutral-900 bg-neutral-900 text-white font-bold rounded hover:bg-neutral-800" onclick="confirmar()">Confirmar</button>
-    </div>
-  </dialog>
-
   <script>
-    document.querySelector("dialog").addEventListener("click", function (e) {
-      if (e.target === this) this.close();
-    });
+    const $ = (id) => document.getElementById(id);
+    const LISTA = $("lista");
+    const DIALOG = $("dialog");
 
+    const POR_PAGINA = 5;
     let livros = [];
     let paginaAtual = 1;
-    const POR_PAGINA = 5;
     let livroSelecionado = null;
 
-    function uid() {
+    const pad = (n) => String(n).padStart(2, "0");
+
+    const agoraLocal = () => {
+      const d = new Date();
+      return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) +
+        "T" + pad(d.getHours()) + ":" + pad(d.getMinutes());
+    };
+
+    const uid = () => {
       try {
         return crypto.randomUUID();
-      } catch (e) {
-        return 'web-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+      } catch {
+        return "web-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
       }
-    }
+    };
 
-    async function init() {
-      const res = await fetch("/api/opcoes");
-      const data = await res.json();
-      livros = data.livros || [];
-      renderLista();
-      if (livros.length === 0) {
-        document.getElementById("secao-livro").style.display = "none";
-      }
-    }
+    const itemAtivo = (li) => li.id == livroSelecionado;
+
+    const itemClasse = (cadastrado, li) =>
+      "flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition-colors rounded-md " +
+      (itemAtivo(li)
+        ? "bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900"
+        : cadastrado
+          ? "text-neutral-900 dark:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+          : "pointer-events-none text-neutral-400 dark:text-neutral-500 opacity-70");
 
     function renderLista() {
-      const el = document.getElementById("lista");
-      const total = livros.length;
-      const totalPaginas = Math.max(1, Math.ceil(total / POR_PAGINA));
+      const temLivros = livros.length > 0;
+      $("secao-livro").classList.toggle("hidden", !temLivros);
+      $("sem-livros").classList.toggle("hidden", temLivros);
+      if (!temLivros) return;
+
+      const totalPaginas = Math.max(1, Math.ceil(livros.length / POR_PAGINA));
       paginaAtual = Math.min(paginaAtual, totalPaginas);
       const inicio = (paginaAtual - 1) * POR_PAGINA;
-      const fim = Math.min(inicio + POR_PAGINA, total);
+      const fim = Math.min(inicio + POR_PAGINA, livros.length);
 
-      let html = "";
-      for (let i = inicio; i < fim; i++) {
-        const li = livros[i];
-        const sel = livroSelecionado === li.id;
-        html += '<button class="lista-item block w-full px-3 py-2.5 text-left text-neutral-900 bg-white border-b border-neutral-900 last:border-b-0' + (sel ? " bg-neutral-900 text-white" : " hover:bg-neutral-100") + ' rounded"'
-          + ' onclick="selecionar(' + li.id + ')">'
-          + (sel ? "✓" : "◦") + " " + li.titulo
-          + "</button>";
+      LISTA.innerHTML =
+        livros.slice(inicio, fim).map((li) =>
+          `<button type="button" class="${itemClasse(temLivros, li)}" data-id="${li.id}">
+            <span>${li.titulo}</span>
+            <span aria-hidden="true">${itemAtivo(li) ? "✓" : ""}</span>
+          </button>`
+        ).join("") +
+        `<div class="mt-1 flex items-center justify-between border-t border-neutral-200 dark:border-neutral-800 px-2 pt-2 text-xs text-neutral-500 dark:text-neutral-400">
+          <button type="button" class="btn btn-outline h-8 px-3" id="pag-anterior" ${paginaAtual <= 1 ? "disabled" : ""}>‹ Anterior</button>
+          <span>Página ${paginaAtual} de ${totalPaginas}</span>
+          <button type="button" class="btn btn-outline h-8 px-3" id="pag-proxima" ${paginaAtual >= totalPaginas ? "disabled" : ""}>Próxima ›</button>
+        </div>`;
+
+      LISTA.querySelectorAll("[data-id]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          livroSelecionado = btn.dataset.id;
+          renderLista();
+          const livro = livros.find((o) => o.id == livroSelecionado);
+          if (livro) await preencherPaginas(livro);
+        });
+      });
+      $("pag-anterior").addEventListener("click", () => { if (paginaAtual > 1) { paginaAtual--; renderLista(); } });
+      $("pag-proxima").addEventListener("click", () => {
+        const totalPaginas = Math.max(1, Math.ceil(livros.length / POR_PAGINA));
+        if (paginaAtual < totalPaginas) { paginaAtual++; renderLista(); }
+      });
+    }
+
+    async function preencherPaginas(livro) {
+      if (!livro || !livro.md5) return;
+      try {
+        const res = await fetch("/api/leitura?md5=" + encodeURIComponent(livro.md5) + "&limit=1");
+        const data = await res.json();
+        const ultimo = (data.registros || [])[0];
+        if (!ultimo) return;
+        const total = Math.max(1, Number(ultimo.numero_3) || 1);
+        const inicio = Math.min(Math.max(1, Number(ultimo.numero_2) + 1), total);
+        $("num-1").value = inicio;
+        $("num-2").value = inicio;
+        $("num-3").value = total;
+      } catch {
+        // manter valores atuais
       }
-
-      html += '<div class="lista-navegacao flex justify-between items-center px-3 py-2 border-t-2 border-neutral-900 text-sm">'
-        + '<button onclick="anterior()" ' + (paginaAtual <= 1 ? "disabled" : "") + ' class="px-3 py-1 border border-neutral-900 bg-white rounded hover:bg-neutral-100 disabled:opacity-30 disabled:hover:bg-white">‹ Anterior</button>'
-        + "<span>Página " + paginaAtual + " de " + totalPaginas + "</span>"
-        + '<button onclick="proxima()" ' + (paginaAtual >= totalPaginas ? "disabled" : "") + ' class="px-3 py-1 border border-neutral-900 bg-white rounded hover:bg-neutral-100 disabled:opacity-30 disabled:hover:bg-white">Próxima ›</button>'
-        + "</div>";
-
-      el.innerHTML = html;
-    }
-
-    function selecionar(id) {
-      livroSelecionado = id;
-      renderLista();
-    }
-
-    function anterior() {
-      if (paginaAtual > 1) { paginaAtual--; renderLista(); }
-    }
-
-    function proxima() {
-      const totalPaginas = Math.max(1, Math.ceil(livros.length / POR_PAGINA));
-      if (paginaAtual < totalPaginas) { paginaAtual++; renderLista(); }
     }
 
     function limparErros() {
-      document.querySelectorAll(".erro").forEach(function(e) { e.textContent = ""; });
+      document.querySelectorAll("[id^=erro-]").forEach((el) => { el.textContent = ""; });
     }
+
+    function setErro(nome, msg) {
+      const el = $("erro-" + nome);
+      if (el) el.textContent = msg;
+    }
+
+    function validar() {
+      const dt1 = $("dt1").value;
+      const dt2 = $("dt2").value;
+      const n1 = parseInt($("num-1").value, 10);
+      const n2 = parseInt($("num-2").value, 10);
+      const n3 = parseInt($("num-3").value, 10);
+
+      let ok = true;
+      if (livros.length > 0 && livroSelecionado === null) { setErro("dt1", "Selecione um livro"); ok = false; }
+      if (!dt1) { setErro("dt1", "Obrigatório"); ok = false; }
+      if (!dt2) { setErro("dt2", "Obrigatório"); ok = false; }
+      else if (dt1 && dt2 <= dt1) { setErro("dt2", "Deve ser posterior ao início"); ok = false; }
+      if (isNaN(n1) || n1 < 1) { setErro("num-1", "Deve ser inteiro ≥ 1"); ok = false; }
+      if (isNaN(n2) || n2 < 1) { setErro("num-2", "Deve ser inteiro ≥ 1"); ok = false; }
+      else if (!isNaN(n1) && n2 < n1) { setErro("num-2", "Deve ser maior ou igual à página inicial"); ok = false; }
+      if (isNaN(n3) || n3 < 1) { setErro("num-3", "Deve ser inteiro ≥ 1"); ok = false; }
+      return ok;
+    }
+
+    const fmtLocal = (v) => {
+      const d = new Date(v);
+      return d.toLocaleDateString("pt-BR") + " " + d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    };
 
     function abrirDialog() {
       limparErros();
-      var ok = true;
+      if (!validar()) return;
 
-      if (livros.length > 0 && !livroSelecionado) {
-        ok = false;
-      }
-
-      var dt1 = document.getElementById("dt1").value;
-      var dt2 = document.getElementById("dt2").value;
-      if (!dt1) { document.getElementById("erro-dt1").textContent = "Obrigatório"; ok = false; }
-      if (!dt2) { document.getElementById("erro-dt2").textContent = "Obrigatório"; ok = false; }
-      if (dt1 && dt2 && dt2 <= dt1) {
-        document.getElementById("erro-dt2").textContent = "Deve ser posterior ao início";
-        ok = false;
-      }
-
-      var n1 = parseInt(document.getElementById("num-1").value, 10);
-      var n2 = parseInt(document.getElementById("num-2").value, 10);
-      var n3 = parseInt(document.getElementById("num-3").value, 10);
-      if (isNaN(n1) || n1 < 1) { document.getElementById("erro-num-1").textContent = "Deve ser inteiro >= 1"; ok = false; }
-      if (isNaN(n2) || n2 < 1) { document.getElementById("erro-num-2").textContent = "Deve ser inteiro >= 1"; ok = false; }
-      if (isNaN(n3) || n3 < 1) { document.getElementById("erro-num-3").textContent = "Deve ser inteiro >= 1"; ok = false; }
-      if (!ok) return;
-      if (n2 < n1) {
-        document.getElementById("erro-num-2").textContent = "Deve ser maior ou igual à página inicial";
-        ok = false;
-      }
-      if (!ok) return;
-
-      var livroObj = livros.find(function(o) { return o.id === livroSelecionado; });
-      var livroTexto = livroObj ? livroObj.titulo : "—";
-      var fmt = function(v) {
-        var d = new Date(v);
-        return d.toLocaleDateString("pt-BR") + " " + d.toLocaleTimeString("pt-BR", {hour: "2-digit", minute: "2-digit"});
-      };
-      var linhas = "<strong>Livro:</strong> " + livroTexto + "<br>"
-        + "<strong>Início:</strong> " + fmt(dt1) + "<br>"
-        + "<strong>Fim:</strong> " + fmt(dt2) + "<br>"
-        + "<strong>Página inicial:</strong> " + n1 + "<br>"
-        + "<strong>Página final:</strong> " + n2 + "<br>"
-        + "<strong>Total de páginas:</strong> " + n3;
-      document.getElementById("resumo").innerHTML = linhas;
-      document.getElementById("dialog").showModal();
-    }
-
-    function fecharDialog() {
-      document.getElementById("dialog").close();
+      const livro = livros.find((o) => o.id == livroSelecionado);
+      $("resumo").innerHTML =
+        "<strong>Livro:</strong> " + (livro ? livro.titulo : "—") + "<br>" +
+        "<strong>Início:</strong> " + fmtLocal($("dt1").value) + "<br>" +
+        "<strong>Fim:</strong> " + fmtLocal($("dt2").value) + "<br>" +
+        "<strong>Página inicial:</strong> " + $("num-1").value + "<br>" +
+        "<strong>Página final:</strong> " + $("num-2").value + "<br>" +
+        "<strong>Total de páginas:</strong> " + $("num-3").value;
+      DIALOG.showModal();
     }
 
     async function confirmar() {
-      var livroObj = livros.find(function(o) { return o.id === livroSelecionado; });
-      var dados = {
+      const livro = livros.find((o) => o.id == livroSelecionado);
+      const dados = {
         op_id: uid(),
-        md5: livroObj ? livroObj.md5 : undefined,
-        titulo: livroObj ? livroObj.titulo : undefined,
+        md5: livro ? livro.md5 : undefined,
+        titulo: livro ? livro.titulo : undefined,
         origem: "web",
-        data_hora_1: document.getElementById("dt1").value,
-        data_hora_2: document.getElementById("dt2").value,
-        numero_1: parseInt(document.getElementById("num-1").value, 10),
-        numero_2: parseInt(document.getElementById("num-2").value, 10),
-        numero_3: parseInt(document.getElementById("num-3").value, 10),
+        data_hora_1: $("dt1").value,
+        data_hora_2: $("dt2").value,
+        numero_1: parseInt($("num-1").value, 10),
+        numero_2: parseInt($("num-2").value, 10),
+        numero_3: parseInt($("num-3").value, 10),
       };
 
       try {
-        var res = await fetch("/api/leitura", {
+        const res = await fetch("/api/leitura", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(dados),
         });
-        var result = await res.json();
-        fecharDialog();
+        const result = await res.json();
+        DIALOG.close();
         if (result.ok) {
-          document.body.innerHTML = '<div class="sucesso text-center py-10 text-lg font-bold">'
-            + "✓ Leitura registrada com sucesso!<br><br>"
-            + '<a href="/" class="text-neutral-900 underline decoration-neutral-900">Voltar</a>'
-            + "</div>";
+          document.body.innerHTML =
+            '<div class="flex min-h-screen items-center justify-center bg-neutral-50 dark:bg-neutral-950 px-4">' +
+            '<div class="card w-full max-w-sm p-6 text-center">' +
+            '<div class="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400">✓</div>' +
+            '<p class="text-base font-semibold">Leitura registrada com sucesso!</p>' +
+            '<a href="/" class="btn btn-outline mt-4 w-full">Voltar</a>' +
+            "</div></div>";
         } else {
           alert("Erro: " + result.error);
         }
       } catch (err) {
-        fecharDialog();
+        DIALOG.close();
         alert("Erro de conexão: " + err);
       }
+    }
+
+    DIALOG.addEventListener("click", (e) => { if (e.target === DIALOG) DIALOG.close(); });
+    $("btn-salvar").addEventListener("click", abrirDialog);
+    $("btn-cancelar").addEventListener("click", () => DIALOG.close());
+    $("btn-confirmar").addEventListener("click", confirmar);
+
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && DIALOG.open) DIALOG.close(); });
+
+    async function init() {
+      $("dt1").value = agoraLocal();
+      $("dt2").value = agoraLocal();
+      const res = await fetch("/api/opcoes");
+      const data = await res.json();
+      livros = data.livros || [];
+      renderLista();
     }
 
     init();

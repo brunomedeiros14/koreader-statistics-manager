@@ -136,7 +136,9 @@ const app = new Elysia()
             tx.run(sql`DELETE FROM opcao`);
             const seen = new Set<string>();
             livros.forEach((li, i) => {
-              const md5 = String(li.md5 ?? "").trim().toLowerCase();
+              const md5 = String(li.md5 ?? "")
+                .trim()
+                .toLowerCase();
               const titulo = String(li.titulo ?? "").trim();
               if (!titulo || !/^[0-9a-f]{32}$/.test(md5) || seen.has(md5)) {
                 return;
@@ -210,7 +212,11 @@ const app = new Elysia()
       if (query.opcao_id)
         conditions.push(sql`l.opcao_id = ${toNumber(query.opcao_id, 0)}`);
       if (query.md5) conditions.push(sql`l.md5 = ${query.md5}`);
-      if (query.sincronizada === "0" || query.sincronizada === "1" || query.sincronizada === "2")
+      if (
+        query.sincronizada === "0" ||
+        query.sincronizada === "1" ||
+        query.sincronizada === "2"
+      )
         conditions.push(sql`l.leitura_sincronizada = ${query.sincronizada}`);
       if (query.data_inicio)
         conditions.push(sql`l.data_hora_1 >= ${query.data_inicio}`);
@@ -265,7 +271,11 @@ const app = new Elysia()
       if (query.opcao_id)
         conditions.push(sql`l.opcao_id = ${toNumber(query.opcao_id, 0)}`);
       if (query.md5) conditions.push(sql`l.md5 = ${query.md5}`);
-      if (query.sincronizada === "0" || query.sincronizada === "1" || query.sincronizada === "2")
+      if (
+        query.sincronizada === "0" ||
+        query.sincronizada === "1" ||
+        query.sincronizada === "2"
+      )
         conditions.push(sql`l.leitura_sincronizada = ${query.sincronizada}`);
       if (query.data_inicio)
         conditions.push(sql`l.data_hora_1 >= ${query.data_inicio}`);
