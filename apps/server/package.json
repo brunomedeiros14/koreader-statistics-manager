@@ -1,0 +1,21 @@
+{
+  "name": "@leitura/server",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --watch src/server.ts",
+    "start": "bun src/server.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@elysia/openapi": "^1.4.16",
+    "@leitura/common": "workspace:*",
+    "drizzle-orm": "^0.45.2",
+    "elysia": "^1.4.30"
+  },
+  "devDependencies": {
+    "@types/bun": "1.4.2",
+    "typescript": "^5.9.3"
+  }
+}

@@ -1,59 +1,19 @@
+import {
+  isValidIso,
+  isValidMd5,
+  isValidNumero,
+  isValidSyncStatus,
+  type PatchValues,
+  type PayloadValues,
+  type ValidationResult,
+} from "@leitura/common";
 import { eq } from "drizzle-orm";
+
 import { db } from "./db";
 import { opcao } from "./db/schema";
 
-export const toNumber = (value: string | null, fallback: number): number => {
-  if (value === null || value.trim() === "") return fallback;
-  const n = Number(value);
-  return Number.isFinite(n) ? n : fallback;
-};
-
-export const isValidIso = (value: unknown): value is string =>
-  typeof value === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value);
-
-export const isValidNumero = (value: unknown): value is number =>
-  typeof value === "number" && Number.isInteger(value) && value >= 0;
-
-export const isValidMd5 = (value: unknown): value is string =>
-  typeof value === "string" && /^[0-9a-fA-F]{32}$/.test(value);
-
-export const isValidSyncStatus = (value: unknown): value is boolean | number =>
-  typeof value === "boolean" ||
-  (typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 2);
-
 // drizzle/bun-sqlite types .run() as void but returns { changes, lastInsertRowid }.
 type SqlRunResult = { changes: number; lastInsertRowid: number };
-
-export interface PayloadValues {
-  op_id: string | undefined;
-  md5: string;
-  titulo: string;
-  opcao_id: number;
-  tipo: string;
-  data_hora_1: string;
-  data_hora_2: string;
-  numero_1: number;
-  numero_2: number;
-  numero_3: number;
-}
-
-export interface PatchValues {
-  op_id?: string;
-  md5?: string;
-  titulo?: string;
-  opcao_id?: number;
-  tipo?: string;
-  data_hora_1?: string;
-  data_hora_2?: string;
-  numero_1?: number;
-  numero_2?: number;
-  numero_3?: number;
-  leitura_sincronizada?: boolean | number;
-}
-
-export type ValidationResult =
-  | { ok: true; values: PayloadValues | PatchValues }
-  | { ok: false; error: string };
 
 type LivroRef = { id: number; texto: string };
 

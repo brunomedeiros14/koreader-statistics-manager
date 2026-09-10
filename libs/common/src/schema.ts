@@ -24,7 +24,7 @@ export const leitura = sqliteTable("leitura", {
   createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
 });
 
-export type Livro = typeof opcao.$inferSelect;
-export type LivroInsert = typeof opcao.$inferInsert;
-export type Leitura = typeof leitura.$inferSelect;
+export type OpcaoRow = typeof opcao.$inferSelect;
+export type OpcaoInsert = typeof opcao.$inferInsert;
+export type LeituraRow = typeof leitura.$inferSelect;
 export type LeituraInsert = typeof leitura.$inferInsert;

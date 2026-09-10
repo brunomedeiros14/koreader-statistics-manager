@@ -6,7 +6,7 @@ import { drizzle } from "drizzle-orm/bun-sqlite";
 
 const DATA_DIR = process.env.DATA_DIR
   ? process.env.DATA_DIR
-  : join(import.meta.dir, "../../data");
+  : join(import.meta.dir, "../../../../data");
 const DB_PATH = join(DATA_DIR, "leitura.sqlite3");
 
 mkdirSync(DATA_DIR, { recursive: true });

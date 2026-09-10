@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer components {
+  .card {
+    @apply bg-white dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800 shadow-sm;
+  }
+  .label {
+    @apply block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5;
+  }
+  .input {
+    color-scheme: dark;
+    @apply w-full h-10 px-3 py-2 text-sm text-neutral-900 dark:text-white bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-600 rounded-md shadow-sm transition-all placeholder:text-neutral-400 dark:placeholder:text-neutral-400 hover:border-neutral-400 dark:hover:border-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-400/40 dark:focus:ring-neutral-400/30 focus:border-neutral-500 dark:focus:border-neutral-400;
+  }
+  .select {
+    color-scheme: dark;
+    @apply h-10 px-3 pr-8 text-sm text-neutral-900 dark:text-white bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-600 rounded-md shadow-sm transition-all hover:border-neutral-400 dark:hover:border-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-400/40 dark:focus:ring-neutral-400/30 focus:border-neutral-500 dark:focus:border-neutral-400;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-1.5 h-9 px-4 text-sm font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-neutral-950 disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .btn-outline {
+    @apply border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-800 focus:ring-neutral-900/10 dark:focus:ring-neutral-400/30;
+  }
+  .btn-primary {
+    @apply bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 hover:bg-neutral-700 dark:hover:bg-neutral-200 focus:ring-neutral-900/50 dark:focus:ring-neutral-400/50;
+  }
+  .btn-ghost {
+    @apply text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100 focus:ring-neutral-900/10 dark:focus:ring-neutral-400/30;
+  }
+  .badge {
+    @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium;
+  }
+  .th {
+    @apply border-b border-neutral-200 dark:border-neutral-800 px-3 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-neutral-500 dark:text-neutral-400;
+  }
+  .td {
+    @apply border-b border-neutral-200 dark:border-neutral-800 px-3 py-2.5 text-sm text-neutral-700 dark:text-neutral-300;
+  }
+}

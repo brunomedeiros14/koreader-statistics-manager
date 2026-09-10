@@ -1,17 +1,17 @@
 import { openapi } from "@elysia/openapi";
+import {
+  toNumber,
+  type PatchValues,
+  type PayloadValues,
+} from "@leitura/common";
 import { and, eq, sql } from "drizzle-orm";
 import { Elysia, t } from "elysia";
+import { existsSync } from "fs";
 import { join } from "path";
 
 import { db } from "./db";
 import { leitura, opcao, type LeituraInsert } from "./db/schema";
-import {
-  toNumber,
-  validatePayload,
-  validatePayloadPatch,
-  type PatchValues,
-  type PayloadValues,
-} from "./validation";
+import { validatePayload, validatePayloadPatch } from "./validation";
 
 const PORT = Number(process.env.PORT ?? 3000);
 
@@ -28,11 +28,28 @@ const toCsv = (headers: string[], rows: Array<Array<unknown>>): string =>
     "\r\n",
   );
 
-const serveHtml = async (name: string): Promise<Response> => {
-  const file = Bun.file(join(import.meta.dir, name));
+const WEB_DIST = join(import.meta.dir, "../../web/dist");
+const INDEX_HTML = join(WEB_DIST, "index.html");
+const hasWebBuild = existsSync(INDEX_HTML);
+
+const spa = async (): Promise<Response> => {
+  if (!hasWebBuild) {
+    return new Response(
+      "Frontend ainda não compilado — rode 'bun run dev' na raiz do monorepo.",
+      { status: 404, headers: { "Content-Type": "text/plain; charset=utf-8" } },
+    );
+  }
+  const file = Bun.file(INDEX_HTML);
   return new Response(await file.text(), {
     headers: { "Content-Type": "text/html; charset=utf-8" },
   });
+};
+
+const asset = async (name: string): Promise<Response> => {
+  const file = Bun.file(join(WEB_DIST, "assets", name));
+  return (await file.exists())
+    ? new Response(file)
+    : new Response("Not found", { status: 404 });
 };
 
 const bodyLeitura = t.Object({
@@ -97,13 +114,21 @@ const app = new Elysia()
     return { ok: false, error: errorMessage(error) };
   })
 
-  // --- HTML pages ----------------------------------------------------------
-  .get("/", () => serveHtml("view/form.html"), { detail: { hide: true } })
-  .get("/registros", () => serveHtml("view/registros.html"), {
+  .get("/assets/*", ({ params }) => asset(params["*"] ?? ""), {
     detail: { hide: true },
   })
-  .get("/config", () => serveHtml("view/config.html"), {
-    detail: { hide: true },
+  .get("/*", ({ request }) => {
+    const path = new URL(request.url).pathname;
+    if (path === "/openapi" || path.startsWith("/openapi/")) {
+      return new Response("Not found", { status: 404 });
+    }
+    if (path.startsWith("/api/")) {
+      return new Response(JSON.stringify({ error: "Not found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    return spa();
   })
 
   // --- Config ---------------------------------------------------------------
