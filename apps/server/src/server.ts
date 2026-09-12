@@ -157,7 +157,7 @@ const app = new Elysia()
     },
     { detail: { hide: true } },
   )
-  .get("/*", ({ request }) => {
+  .get("/*", async ({ request }) => {
     const path = new URL(request.url).pathname;
     if (path === "/openapi" || path.startsWith("/openapi/")) {
       return new Response("Not found", { status: 404 });
@@ -167,6 +167,13 @@ const app = new Elysia()
         status: 404,
         headers: { "Content-Type": "application/json" },
       });
+    }
+    // Serve static files at the SPA root (favicon, manifest, etc. — the Vite
+    // "public" dir ends up inside dist/), then fall back to the SPA shell.
+    // request.url pathname is already normalized, so this stays inside dist/.
+    const file = Bun.file(join(WEB_DIST, path.slice(1)));
+    if (await file.exists()) {
+      return new Response(file);
     }
     return spa();
   })
