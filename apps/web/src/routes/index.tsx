@@ -281,7 +281,7 @@ function LeituraAtiva({
             {sessao.titulo}
           </p>
           <p className="mt-4 font-mono text-4xl font-semibold tabular-nums tracking-tight text-neutral-900 dark:text-neutral-100">
-            {fmtTempo(agora - new Date(sessao.inicio).getTime())}
+            {fmtTempo(agora - sessao.criadoEm)}
           </p>
           <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
             Início {fmtLocal(sessao.inicio)} · Página inicial {sessao.paginaInicial}
