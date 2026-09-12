@@ -106,6 +106,8 @@ export interface StatsResponse {
   soma_num2: number;
   soma_num3: number;
   duracao_media_horas: number;
+  duracao_total_horas: number;
+  paginas_lidas: number;
   por_tipo: Array<{
     opcao_id: number | null;
     tipo: string | null;

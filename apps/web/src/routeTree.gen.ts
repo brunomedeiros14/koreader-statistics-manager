@@ -10,7 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdicionarRouteImport } from './routes/adicionar'
 import { Route as ConfigRouteImport } from './routes/config'
+import { Route as IniciarRouteImport } from './routes/iniciar'
 import { Route as RegistrosRouteImport } from './routes/registros'
 
 const IndexRoute = IndexRouteImport.update({
@@ -18,9 +20,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdicionarRoute = AdicionarRouteImport.update({
+  id: '/adicionar',
+  path: '/adicionar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ConfigRoute = ConfigRouteImport.update({
   id: '/config',
   path: '/config',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IniciarRoute = IniciarRouteImport.update({
+  id: '/iniciar',
+  path: '/iniciar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegistrosRoute = RegistrosRouteImport.update({
@@ -31,31 +43,39 @@ const RegistrosRoute = RegistrosRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/adicionar': typeof AdicionarRoute
   '/config': typeof ConfigRoute
+  '/iniciar': typeof IniciarRoute
   '/registros': typeof RegistrosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/adicionar': typeof AdicionarRoute
   '/config': typeof ConfigRoute
+  '/iniciar': typeof IniciarRoute
   '/registros': typeof RegistrosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/adicionar': typeof AdicionarRoute
   '/config': typeof ConfigRoute
+  '/iniciar': typeof IniciarRoute
   '/registros': typeof RegistrosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/config' | '/registros'
+  fullPaths: '/' | '/adicionar' | '/config' | '/iniciar' | '/registros'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/config' | '/registros'
-  id: '__root__' | '/' | '/config' | '/registros'
+  to: '/' | '/adicionar' | '/config' | '/iniciar' | '/registros'
+  id: '__root__' | '/' | '/adicionar' | '/config' | '/iniciar' | '/registros'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdicionarRoute: typeof AdicionarRoute
   ConfigRoute: typeof ConfigRoute
+  IniciarRoute: typeof IniciarRoute
   RegistrosRoute: typeof RegistrosRoute
 }
 
@@ -68,11 +88,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/adicionar': {
+      id: '/adicionar'
+      path: '/adicionar'
+      fullPath: '/adicionar'
+      preLoaderRoute: typeof AdicionarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/config': {
       id: '/config'
       path: '/config'
       fullPath: '/config'
       preLoaderRoute: typeof ConfigRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/iniciar': {
+      id: '/iniciar'
+      path: '/iniciar'
+      fullPath: '/iniciar'
+      preLoaderRoute: typeof IniciarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/registros': {
@@ -87,7 +121,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdicionarRoute: AdicionarRoute,
   ConfigRoute: ConfigRoute,
+  IniciarRoute: IniciarRoute,
   RegistrosRoute: RegistrosRoute,
 }
 export const routeTree = rootRouteImport

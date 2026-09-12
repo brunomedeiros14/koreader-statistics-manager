@@ -510,7 +510,9 @@ const app = new Elysia()
              COALESCE(SUM(numero_1), 0) AS soma_num1,
              COALESCE(SUM(numero_2), 0) AS soma_num2,
              COALESCE(SUM(numero_3), 0) AS soma_num3,
-             COALESCE(ROUND(AVG(julianday(data_hora_2) - julianday(data_hora_1)) * 24, 2), 0) AS duracao_media_horas
+             COALESCE(ROUND(AVG(julianday(data_hora_2) - julianday(data_hora_1)) * 24, 2), 0) AS duracao_media_horas,
+             COALESCE(ROUND(SUM(julianday(data_hora_2) - julianday(data_hora_1)) * 24, 2), 0) AS duracao_total_horas,
+             COALESCE(SUM(CASE WHEN numero_2 >= numero_1 THEN numero_2 - numero_1 + 1 ELSE 0 END), 0) AS paginas_lidas
       FROM leitura
     `)[0] as Record<string, unknown>;
 

@@ -4,7 +4,13 @@ import type {
   StatsResponse,
 } from "@leitura/common";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 
 import {
   apiDeleteLeitura,
@@ -31,11 +37,6 @@ const fmt = (v: string): string => {
   );
 };
 
-const fmtNum = (v: unknown): string => {
-  const n = Number(v);
-  return Number.isInteger(n) ? n.toString() : n.toFixed(1);
-};
-
 const iso = (v: string): string => {
   const d = new Date(v);
   return (
@@ -43,6 +44,32 @@ const iso = (v: string): string => {
     `T${pad(d.getHours())}:${pad(d.getMinutes())}`
   );
 };
+
+const fmtDuracao = (min: number): string => {
+  const m = Math.max(0, Math.round(min));
+  const h = Math.floor(m / 60);
+  const r = m % 60;
+  if (h === 0) return `${r}min`;
+  if (r === 0) return `${h}h`;
+  return `${h}h${String(r).padStart(2, "0")}min`;
+};
+
+const fmtDec = (n: number): string =>
+  n.toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+const fmtInt = (n: number): string => n.toLocaleString("pt-BR");
+
+const minutosEntre = (a: string, b: string): number =>
+  Math.max(
+    0,
+    Math.round((new Date(b).getTime() - new Date(a).getTime()) / 60000),
+  );
+
+const paginasLidas = (r: LeituraRegistro): number | null =>
+  r.numero_2 >= r.numero_1 ? r.numero_2 - r.numero_1 + 1 : null;
 
 const badgeSync = (s: number | null | undefined): ReactNode => {
   if (s === 1)
@@ -75,44 +102,110 @@ function StatCard({ valor, rotulo }: { valor: string; rotulo: string }) {
   );
 }
 
-function SerieTable({
-  colunas,
-  linhas,
-}: {
-  colunas: string[];
-  linhas: Array<Array<string | number>>;
-}) {
+interface SerieItem {
+  rotulo: string;
+  valor: number;
+  extra: string;
+}
+
+function SerieComBarras({ itens }: { itens: SerieItem[] }) {
+  const max = Math.max(1, ...itens.map((i) => i.valor));
+  if (itens.length === 0) {
+    return (
+      <div className="px-4 py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
+        Sem dados para o recorte atual.
+      </div>
+    );
+  }
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full whitespace-nowrap">
-        <thead>
-          <tr>
-            {colunas.map((c) => (
-              <th
-                key={c}
-                className="border-b border-neutral-200 dark:border-neutral-800 px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-neutral-500 dark:text-neutral-400"
-              >
-                {c}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {linhas.map((l, i) => (
-            <tr key={i}>
-              {l.map((v, j) => (
-                <td
-                  key={j}
-                  className="border-b border-neutral-200 dark:border-neutral-800 px-3 py-2 text-sm text-neutral-700 dark:text-neutral-300"
-                >
-                  {v}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="space-y-3 p-4">
+      {itens.map((i) => (
+        <div key={i.rotulo}>
+          <div className="flex items-baseline justify-between gap-2 text-xs">
+            <span className="truncate font-medium text-neutral-600 dark:text-neutral-300">
+              {i.rotulo}
+            </span>
+            <span className="shrink-0 text-neutral-500 dark:text-neutral-400">
+              {i.extra}
+            </span>
+          </div>
+          <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800">
+            <div
+              className="h-full rounded-full bg-neutral-800 dark:bg-neutral-200"
+              style={{ width: `${Math.max(2, (i.valor / max) * 100)}%` }}
+            />
+          </div>
+        </div>
+      ))}
     </div>
+  );
+}
+
+type SortKey =
+  | "id"
+  | "titulo"
+  | "data_hora_1"
+  | "data_hora_2"
+  | "duracao"
+  | "numero_1"
+  | "numero_2"
+  | "numero_3";
+
+type Ordem = { chave: SortKey; dir: 1 | -1 };
+
+const comparar = (a: LeituraRegistro, b: LeituraRegistro, chave: SortKey): number => {
+  switch (chave) {
+    case "id":
+      return a.id - b.id;
+    case "titulo":
+      return (a.titulo ?? "").localeCompare(b.titulo ?? "", "pt-BR");
+    case "data_hora_1":
+      return a.data_hora_1.localeCompare(b.data_hora_1);
+    case "data_hora_2":
+      return a.data_hora_2.localeCompare(b.data_hora_2);
+    case "duracao":
+      return (
+        minutosEntre(a.data_hora_1, a.data_hora_2) -
+        minutosEntre(b.data_hora_1, b.data_hora_2)
+      );
+    case "numero_1":
+      return a.numero_1 - b.numero_1;
+    case "numero_2":
+      return a.numero_2 - b.numero_2;
+    case "numero_3":
+      return a.numero_3 - b.numero_3;
+  }
+};
+
+function ThOrdenavel({
+  rotulo,
+  chave,
+  ordem,
+  aoOrdenar,
+  direita,
+}: {
+  rotulo: string;
+  chave: SortKey;
+  ordem: Ordem;
+  aoOrdenar: (chave: SortKey) => void;
+  direita?: boolean;
+}) {
+  const ativa = ordem.chave === chave;
+  return (
+    <th
+      aria-sort={
+        ativa ? (ordem.dir === 1 ? "ascending" : "descending") : "none"
+      }
+      className={
+        "border-b border-neutral-200 dark:border-neutral-800 px-3 py-2.5 text-xs font-medium uppercase tracking-wide text-neutral-500 dark:text-neutral-400 cursor-pointer select-none transition-colors hover:text-neutral-900 dark:hover:text-neutral-100 " +
+        (direita ? "text-right" : "text-left")
+      }
+      onClick={() => aoOrdenar(chave)}
+      title={"Ordenar por " + rotulo}
+    >
+      {rotulo}
+      <span className="ml-1 text-[10px]">{ativa ? (ordem.dir === 1 ? "▲" : "▼") : ""}</span>
+    </th>
   );
 }
 
@@ -137,6 +230,7 @@ function RegistrosPage() {
   const [totalPaginas, setTotalPaginas] = useState(1);
   const [stats, setStats] = useState<StatsResponse | null>(null);
   const [editando, setEditando] = useState<LeituraRegistro | null>(null);
+  const [ordem, setOrdem] = useState<Ordem>({ chave: "id", dir: -1 });
 
   const queryFiltros = (incluirPagina: boolean): URLSearchParams => {
     const params: Record<string, string> = {};
@@ -169,13 +263,32 @@ function RegistrosPage() {
     carregar().catch(() => setRegistros([]));
   }, [carregar]);
 
+  const registrosOrdenados = useMemo(() => {
+    const arr = [...registros];
+    arr.sort((a, b) => ordem.dir * comparar(a, b, ordem.chave));
+    return arr;
+  }, [registros, ordem]);
+
   const mudarFiltro = (patch: Partial<Filtros>): void => {
     setFiltros((f) => ({ ...f, ...patch }));
     setPagina(1);
   };
 
+  const limparFiltros = (): void => {
+    setFiltros({ livro: "", sync: "", inicio: "", fim: "" });
+    setPagina(1);
+  };
+
   const irPagina = (delta: number): void => {
     setPagina((p) => Math.max(1, Math.min(totalPaginas, p + delta)));
+  };
+
+  const ordenar = (chave: SortKey): void => {
+    setOrdem((o) =>
+      o.chave === chave
+        ? { chave, dir: o.dir === 1 ? -1 : 1 }
+        : { chave, dir: chave === "titulo" ? 1 : -1 },
+    );
   };
 
   const exportarCsv = (): void => {
@@ -214,20 +327,28 @@ function RegistrosPage() {
     else alert("Erro: " + data.error);
   };
 
-  const porLivro = (stats?.por_tipo ?? [])
-    .filter((t) => typeof t.tipo === "string")
-    .map((t) => `${t.tipo}: ${t.n}`)
-    .join(" · ");
-  const porDia = (stats?.por_dia ?? []).map((d) => [
-    d.dia,
-    d.n,
-    fmtNum(d.horas),
-  ]);
-  const porMes = (stats?.por_mes ?? []).map((m) => [
-    m.mes,
-    m.n,
-    fmtNum(m.horas),
-  ]);
+  const porLivro: SerieItem[] = (stats?.por_tipo ?? [])
+    .filter((t) => typeof t.tipo === "string" && t.tipo)
+    .map((t) => ({
+      rotulo: t.tipo as string,
+      valor: t.n,
+      extra: fmtDuracao(t.horas * 60) + " · " + t.n + " leitura" + (t.n === 1 ? "" : "s"),
+    }));
+
+  const porDia: SerieItem[] = (stats?.por_dia ?? []).map((d) => ({
+    rotulo: d.dia.slice(8, 10) + "/" + d.dia.slice(5, 7) + "/" + d.dia.slice(0, 4),
+    valor: d.n,
+    extra: d.n + " · " + fmtDuracao(d.horas * 60),
+  }));
+
+  const porMes: SerieItem[] = (stats?.por_mes ?? []).map((m) => ({
+    rotulo: m.mes,
+    valor: m.n,
+    extra: m.n + " · " + fmtDuracao(m.horas * 60),
+  }));
+
+  const filtrosAtivos =
+    filtros.livro !== "" || filtros.sync !== "" || filtros.inicio !== "" || filtros.fim !== "";
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -246,7 +367,7 @@ function RegistrosPage() {
             to="/"
             className="text-neutral-500 dark:text-neutral-400 underline-offset-4 hover:text-neutral-900 dark:hover:text-neutral-50 hover:underline"
           >
-            ← Formulário
+            ← Estante
           </Link>
         </div>
       </div>
@@ -323,46 +444,68 @@ function RegistrosPage() {
               Filtrar
             </button>
             <button type="button" className="btn btn-outline" onClick={exportarCsv}>
-              Exportar CSV
+              CSV
             </button>
+            {filtrosAtivos ? (
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={limparFiltros}
+              >
+                Limpar
+              </button>
+            ) : null}
           </div>
         </div>
       </div>
 
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatCard valor={String(stats?.total ?? 0)} rotulo="Total" />
         <StatCard
-          valor={fmtNum(stats?.duracao_media_horas ?? 0) + " h"}
+          valor={fmtInt(stats?.total ?? 0)}
+          rotulo="Total de leituras"
+        />
+        <StatCard
+          valor={fmtDuracao((stats?.duracao_total_horas ?? 0) * 60)}
+          rotulo="Tempo total"
+        />
+        <StatCard
+          valor={fmtDuracao((stats?.duracao_media_horas ?? 0) * 60)}
           rotulo="Duração média"
         />
         <StatCard
-          valor={fmtNum(stats?.media_num1 ?? 0)}
+          valor={fmtInt(stats?.paginas_lidas ?? 0)}
+          rotulo="Páginas lidas"
+        />
+        <StatCard
+          valor={fmtDec(stats?.media_num1 ?? 0)}
           rotulo="Média pág. inicial"
         />
         <StatCard
-          valor={fmtNum(stats?.media_num2 ?? 0)}
+          valor={fmtDec(stats?.media_num2 ?? 0)}
           rotulo="Média pág. final"
         />
-        <StatCard
-          valor={fmtNum(stats?.media_num3 ?? 0)}
-          rotulo="Média total págs."
-        />
-        <StatCard
-          valor={stats?.primeira_data || "—"}
-          rotulo="Primeira"
-        />
-        <StatCard valor={stats?.ultima_data || "—"} rotulo="Última" />
-        <StatCard valor={porLivro || "—"} rotulo="Por livro" />
+        <StatCard valor={stats?.primeira_data ? fmt(stats.primeira_data) : "—"} rotulo="Primeira" />
+        <StatCard valor={stats?.ultima_data ? fmt(stats.ultima_data) : "—"} rotulo="Última" />
       </div>
 
-      <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="card p-4">
-          <h3 className="mb-3 text-sm font-semibold">Por dia</h3>
-          <SerieTable colunas={["Dia", "Qtd", "Horas"]} linhas={porDia} />
+      <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="card">
+          <div className="border-b border-neutral-200 dark:border-neutral-800 px-4 py-3">
+            <h3 className="text-sm font-semibold">Por livro</h3>
+          </div>
+          <SerieComBarras itens={porLivro} />
         </div>
-        <div className="card p-4">
-          <h3 className="mb-3 text-sm font-semibold">Por mês</h3>
-          <SerieTable colunas={["Mês", "Qtd", "Horas"]} linhas={porMes} />
+        <div className="card">
+          <div className="border-b border-neutral-200 dark:border-neutral-800 px-4 py-3">
+            <h3 className="text-sm font-semibold">Por dia</h3>
+          </div>
+          <SerieComBarras itens={porDia} />
+        </div>
+        <div className="card">
+          <div className="border-b border-neutral-200 dark:border-neutral-800 px-4 py-3">
+            <h3 className="text-sm font-semibold">Por mês</h3>
+          </div>
+          <SerieComBarras itens={porMes} />
         </div>
       </div>
 
@@ -370,31 +513,86 @@ function RegistrosPage() {
         <table className="w-full text-sm">
           <thead>
             <tr>
-              <th className="th">ID</th>
-              <th className="th">Livro</th>
-              <th className="th">Início</th>
-              <th className="th">Fim</th>
-              <th className="th text-right tab-num">P. ini</th>
-              <th className="th text-right tab-num">P. fim</th>
-              <th className="th text-right tab-num">Tot.</th>
+              <ThOrdenavel
+                rotulo="ID"
+                chave="id"
+                ordem={ordem}
+                aoOrdenar={ordenar}
+              />
+              <ThOrdenavel
+                rotulo="Livro"
+                chave="titulo"
+                ordem={ordem}
+                aoOrdenar={ordenar}
+              />
+              <ThOrdenavel
+                rotulo="Início"
+                chave="data_hora_1"
+                ordem={ordem}
+                aoOrdenar={ordenar}
+              />
+              <ThOrdenavel
+                rotulo="Fim"
+                chave="data_hora_2"
+                ordem={ordem}
+                aoOrdenar={ordenar}
+              />
+              <ThOrdenavel
+                rotulo="Dur."
+                chave="duracao"
+                ordem={ordem}
+                aoOrdenar={ordenar}
+                direita
+              />
+              <ThOrdenavel
+                rotulo="P. ini"
+                chave="numero_1"
+                ordem={ordem}
+                aoOrdenar={ordenar}
+                direita
+              />
+              <ThOrdenavel
+                rotulo="P. fim"
+                chave="numero_2"
+                ordem={ordem}
+                aoOrdenar={ordenar}
+                direita
+              />
+              <ThOrdenavel
+                rotulo="Tot."
+                chave="numero_3"
+                ordem={ordem}
+                aoOrdenar={ordenar}
+                direita
+              />
+              <th className="th text-right">Págs.</th>
               <th className="th">KOReader</th>
               <th className="th text-right">Ações</th>
             </tr>
           </thead>
           <tbody>
-            {registros.map((r) => (
-              <tr key={r.id}>
+            {registrosOrdenados.map((r) => (
+              <tr
+                key={r.id}
+                className="transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/40"
+              >
                 <td className="td">{r.id}</td>
-                <td className="td">{r.titulo || "—"}</td>
+                <td className="td max-w-[14rem] truncate">{r.titulo || "—"}</td>
                 <td className="td whitespace-nowrap">{fmt(r.data_hora_1)}</td>
                 <td className="td whitespace-nowrap">{fmt(r.data_hora_2)}</td>
-                <td className="td text-right tab-num">{r.numero_1}</td>
-                <td className="td text-right tab-num">{r.numero_2}</td>
-                <td className="td text-right tab-num">{r.numero_3}</td>
-                <td className="td text-center">
+                <td className="td whitespace-nowrap text-right tabular-nums">
+                  {fmtDuracao(minutosEntre(r.data_hora_1, r.data_hora_2))}
+                </td>
+                <td className="td text-right tabular-nums">{r.numero_1}</td>
+                <td className="td text-right tabular-nums">{r.numero_2}</td>
+                <td className="td text-right tabular-nums">{r.numero_3}</td>
+                <td className="td text-right tabular-nums">
+                  {paginasLidas(r) ?? "—"}
+                </td>
+                <td className="td whitespace-nowrap text-center">
                   {badgeSync(r.leitura_sincronizada)}
                 </td>
-                <td className="td text-right whitespace-nowrap">
+                <td className="td whitespace-nowrap text-right">
                   <button
                     type="button"
                     className="btn btn-outline h-8 px-2.5 mr-1"
@@ -414,7 +612,7 @@ function RegistrosPage() {
             ))}
           </tbody>
         </table>
-        {registros.length === 0 && (
+        {registrosOrdenados.length === 0 && (
           <div className="px-4 py-10 text-center text-sm font-medium text-neutral-500 dark:text-neutral-400">
             Nenhum registro encontrado.
           </div>
@@ -431,7 +629,7 @@ function RegistrosPage() {
           ‹ Anterior
         </button>
         <span className="text-sm text-neutral-600 dark:text-neutral-400">
-          Página {pagina} de {totalPaginas} ({total} registros)
+          Página {pagina} de {totalPaginas} ({fmtInt(total)} registros)
         </span>
         <button
           type="button"
