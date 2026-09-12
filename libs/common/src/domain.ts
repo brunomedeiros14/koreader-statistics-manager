@@ -25,12 +25,16 @@ export const isValidSyncStatus = (value: unknown): value is boolean | number =>
 export interface Livro {
   id: number;
   titulo: string;
+  autor: string | null;
+  imagem: string | null;
   md5: string | null;
 }
 
 export interface LivroInput {
   titulo: string;
   md5: string;
+  autor?: string;
+  imagem?: string;
 }
 
 export interface OpcoesResponse {
@@ -117,6 +121,17 @@ export interface StatsResponse {
   por_dia: Array<{ dia: string; n: number; horas: number; soma_num1: number }>;
   por_mes: Array<{ mes: string; n: number; horas: number }>;
 }
+
+export interface SyncLivroPayload {
+  md5: string;
+  titulo: string;
+  autor?: string;
+  imagem?: string;
+}
+
+export type SyncLivroResponse =
+  | { ok: true; id: number; novo: boolean }
+  | { ok: false; error: string };
 
 // --- Validação ---------------------------------------------------------------
 

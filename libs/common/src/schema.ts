@@ -4,6 +4,8 @@ import { sql } from "drizzle-orm";
 export const opcao = sqliteTable("opcao", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   titulo: text("texto").notNull(),
+  autor: text("autor").notNull().default(""),
+  imagem: text("imagem").notNull().default(""),
   md5: text("md5"),
   posicao: integer("posicao").notNull().default(0),
 });

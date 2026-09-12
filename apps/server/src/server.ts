@@ -12,6 +12,7 @@ import { join } from "path";
 import { db } from "./db";
 import { leitura, opcao, type LeituraInsert } from "./db/schema";
 import { validatePayload, validatePayloadPatch } from "./validation";
+import { COVERS_DIR, limparCapasOrfas, resolveCover } from "./covers";
 
 const PORT = Number(process.env.PORT ?? 3000);
 
@@ -117,6 +118,30 @@ const app = new Elysia()
   .get("/assets/*", ({ params }) => asset(params["*"] ?? ""), {
     detail: { hide: true },
   })
+  .get(
+    "/covers/:file",
+    ({ params, set }) => {
+      const file = params.file;
+      if (!/^[A-Za-z0-9._-]+\.(png|jpe?g|webp)$/.test(file)) {
+        set.status = 400;
+        return new Response("Arquivo inválido", { status: 400 });
+      }
+      const path = join(COVERS_DIR, file);
+      if (!existsSync(path)) {
+        set.status = 404;
+        return new Response("Not found", { status: 404 });
+      }
+      const mime = file.endsWith(".png")
+        ? "image/png"
+        : file.endsWith(".webp")
+          ? "image/webp"
+          : "image/jpeg";
+      return new Response(Bun.file(path), {
+        headers: { "Content-Type": mime },
+      });
+    },
+    { detail: { hide: true } },
+  )
   .get("/*", ({ request }) => {
     const path = new URL(request.url).pathname;
     if (path === "/openapi" || path.startsWith("/openapi/")) {
@@ -136,7 +161,13 @@ const app = new Elysia()
     "/api/opcoes",
     () => {
       const livros = db
-        .select({ id: opcao.id, titulo: opcao.titulo, md5: opcao.md5 })
+        .select({
+          id: opcao.id,
+          titulo: opcao.titulo,
+          autor: opcao.autor,
+          imagem: opcao.imagem,
+          md5: opcao.md5,
+        })
         .from(opcao)
         .orderBy(opcao.posicao, opcao.id)
         .all();
@@ -149,7 +180,7 @@ const app = new Elysia()
     "/api/config",
     ({ body, set }) => {
       const { livros } = body as {
-        livros?: Array<{ titulo: string; md5: string }>;
+        livros?: Array<{ titulo: string; md5: string; autor?: string; imagem?: string }>;
       };
 
       // PRAGMA foreign_keys is a no-op inside a transaction, so toggle it
@@ -158,6 +189,16 @@ const app = new Elysia()
       try {
         db.transaction((tx) => {
           if (Array.isArray(livros)) {
+            // Keep autor/imagem already known when the payload omits them
+            // (the web UI replaces the whole list but does not edit covers).
+            const antigos = tx
+              .select({
+                md5: opcao.md5,
+                autor: opcao.autor,
+                imagem: opcao.imagem,
+              })
+              .from(opcao)
+              .all();
             tx.run(sql`DELETE FROM opcao`);
             const seen = new Set<string>();
             livros.forEach((li, i) => {
@@ -169,8 +210,12 @@ const app = new Elysia()
                 return;
               }
               seen.add(md5);
+              const prev = antigos.find((a) => a.md5 === md5);
+              const autor = String(li.autor ?? "").trim() || prev?.autor || "";
+              const novaImagem = resolveCover(li.imagem ?? "", md5);
+              const imagem = novaImagem || prev?.imagem || "";
               tx.insert(opcao)
-                .values({ titulo, md5, posicao: i + 1 })
+                .values({ titulo, autor, imagem, md5, posicao: i + 1 })
                 .run();
             });
             // Remap existing records by md5, falling back to the label text
@@ -193,8 +238,22 @@ const app = new Elysia()
         db.run(sql`PRAGMA foreign_keys = ON`);
       }
 
+      // Drop cover files no longer referenced by any book row.
+      const capas = db
+        .select({ imagem: opcao.imagem })
+        .from(opcao)
+        .all()
+        .map((r) => r.imagem ?? "");
+      limparCapasOrfas(capas);
+
       const livrosOut = db
-        .select({ id: opcao.id, titulo: opcao.titulo, md5: opcao.md5 })
+        .select({
+          id: opcao.id,
+          titulo: opcao.titulo,
+          autor: opcao.autor,
+          imagem: opcao.imagem,
+          md5: opcao.md5,
+        })
         .from(opcao)
         .orderBy(opcao.posicao, opcao.id)
         .all();
@@ -203,7 +262,14 @@ const app = new Elysia()
     {
       body: t.Object({
         livros: t.Optional(
-          t.Array(t.Object({ titulo: t.String(), md5: t.String() })),
+          t.Array(
+            t.Object({
+              titulo: t.String(),
+              md5: t.String(),
+              autor: t.Optional(t.String()),
+              imagem: t.Optional(t.String()),
+            }),
+          ),
         ),
       }),
       detail: {
@@ -217,13 +283,81 @@ const app = new Elysia()
     "/api/config",
     () => {
       const livros = db
-        .select({ id: opcao.id, titulo: opcao.titulo, md5: opcao.md5 })
+        .select({
+          id: opcao.id,
+          titulo: opcao.titulo,
+          autor: opcao.autor,
+          imagem: opcao.imagem,
+          md5: opcao.md5,
+        })
         .from(opcao)
         .orderBy(opcao.posicao, opcao.id)
         .all();
       return { livros };
     },
     { detail: { summary: "Lê a configuração atual", tags: ["Configuração"] } },
+  )
+
+  .post(
+    "/api/livro",
+    ({ body, set }) => {
+      const md5 = String(body.md5 ?? "").trim().toLowerCase();
+      const titulo = String(body.titulo ?? "").trim();
+      const autor = String(body.autor ?? "").trim();
+
+      if (!/^[0-9a-f]{32}$/.test(md5)) {
+        set.status = 400;
+        return { ok: false, error: "md5 inválido (esperado 32 hex)" };
+      }
+      if (!titulo) {
+        set.status = 400;
+        return { ok: false, error: "título obrigatório" };
+      }
+
+      const imagem = resolveCover(body.imagem ?? "", md5);
+
+      // md5 is the idempotency key: same book -> update, never duplicate.
+      const existing = db
+        .select({ id: opcao.id })
+        .from(opcao)
+        .where(eq(opcao.md5, md5))
+        .get();
+      if (existing) {
+        db.update(opcao)
+          .set({ titulo, autor, imagem })
+          .where(eq(opcao.md5, md5))
+          .run();
+        return { ok: true, id: existing.id, novo: false };
+      }
+
+      const max = (
+        db
+          .select({
+            m: sql<number>`COALESCE(MAX(${opcao.posicao}), 0)`,
+          })
+          .from(opcao)
+          .get() ?? { m: 0 }
+      ).m;
+      const info = runRows(
+        db
+          .insert(opcao)
+          .values({ titulo, autor, imagem, md5, posicao: Number(max) + 1 })
+          .run(),
+      );
+      return { ok: true, id: info.lastInsertRowid, novo: true };
+    },
+    {
+      body: t.Object({
+        md5: t.String(),
+        titulo: t.String(),
+        autor: t.Optional(t.String()),
+        imagem: t.Optional(t.String()),
+      }),
+      detail: {
+        summary: "Sincroniza um livro (idempotente via md5)",
+        tags: ["Configuração"],
+      },
+    },
   )
 
   // --- Leitura ----------------------------------------------------------------

@@ -10,6 +10,7 @@ import {
   descartarSessao,
   type SessaoLeitura,
 } from "../sessao";
+import { carregarModoEstante, type ModoEstante } from "../preferencias";
 import { agoraLocal, fmtLocal, fmtTempo, uid } from "../util";
 
 export const Route = createFileRoute("/")({ component: HomePage });
@@ -94,6 +95,7 @@ function Estante({
   const navigate = useNavigate();
   const [livros, setLivros] = useState<Livro[]>([]);
   const [paginaAtual, setPaginaAtual] = useState(1);
+  const [modo] = useState<ModoEstante>(() => carregarModoEstante());
 
   useEffect(() => {
     apiGetOpcoes()
@@ -124,19 +126,31 @@ function Estante({
 
   return (
     <div className="p-1.5">
-      <ul className="divide-y divide-neutral-100 dark:divide-neutral-800">
-        {visiveis.map((li) => (
-          <li
-            key={li.id}
-            className="flex items-center justify-between gap-3 px-3 py-3"
-          >
-            <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
-                {li.titulo}
-              </p>
-            </div>
-            <div className="flex shrink-0 gap-2">
-              <button
+      {modo === "imagem" ? (
+        <div className="grid grid-cols-2 gap-3 p-1.5 sm:grid-cols-3">
+          {visiveis.map((li) => (
+            <CartaoLivro key={li.id} li={li} />
+          ))}
+        </div>
+      ) : (
+        <ul className="divide-y divide-neutral-100 dark:divide-neutral-800">
+          {visiveis.map((li) => (
+            <li
+              key={li.id}
+              className="flex items-center justify-between gap-3 px-3 py-3"
+            >
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                  {li.titulo}
+                </p>
+                {li.autor ? (
+                  <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">
+                    {li.autor}
+                  </p>
+                ) : null}
+              </div>
+              <div className="flex shrink-0 gap-2">
+                <button
                   type="button"
                   className="btn btn-primary h-8 w-8 px-0"
                   title="Iniciar leitura"
@@ -154,10 +168,11 @@ function Estante({
                 >
                   <Plus className="h-4 w-4" />
                 </button>
-            </div>
-          </li>
-        ))}
-      </ul>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
       <div className="mt-1 flex items-center justify-between border-t border-neutral-200 dark:border-neutral-800 px-2 pt-2 text-xs text-neutral-500 dark:text-neutral-400">
         <button
           type="button"
@@ -178,6 +193,81 @@ function Estante({
         >
           Próxima ›
         </button>
+      </div>
+    </div>
+  );
+}
+
+function CartaoLivro({ li }: { li: Livro }) {
+  const navigate = useNavigate();
+  const iniciar = (): void => {
+    void navigate({ to: "/iniciar", search: { livro: String(li.id) } });
+  };
+  const adicionar = (): void => {
+    void navigate({ to: "/adicionar", search: { livro: String(li.id) } });
+  };
+  const src = (() => {
+    if (!li.imagem) return null;
+    if (li.imagem.startsWith("data:")) return li.imagem;
+    if (li.imagem.startsWith("covers/") || li.imagem.startsWith("/covers/")) {
+      return `/${li.imagem.replace(/^\/+/, "")}`;
+    }
+    return `data:image/png;base64,${li.imagem}`;
+  })();
+
+  return (
+    <div className="card flex flex-col overflow-hidden">
+      <button
+        type="button"
+        onClick={iniciar}
+        className="group block aspect-[2/3] w-full overflow-hidden bg-neutral-100 dark:bg-neutral-900"
+        title={`Iniciar leitura: ${li.titulo}`}
+        aria-label={`Iniciar leitura: ${li.titulo}`}
+      >
+        {src ? (
+          <img
+            src={src}
+            alt=""
+            loading="lazy"
+            className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+          />
+        ) : (
+          <span className="flex h-full w-full items-center justify-center px-3 text-center text-sm text-neutral-400 dark:text-neutral-500">
+            {li.titulo}
+          </span>
+        )}
+      </button>
+      <div className="flex items-center justify-between gap-2 px-2.5 py-2">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
+            {li.titulo}
+          </p>
+          {li.autor ? (
+            <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">
+              {li.autor}
+            </p>
+          ) : null}
+        </div>
+        <div className="flex shrink-0 gap-1.5">
+          <button
+            type="button"
+            className="btn btn-primary h-7 w-7 px-0"
+            title="Iniciar leitura"
+            aria-label="Iniciar leitura"
+            onClick={iniciar}
+          >
+            <Play className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            className="btn btn-outline h-7 w-7 px-0"
+            title="Adicionar leitura"
+            aria-label="Adicionar leitura"
+            onClick={adicionar}
+          >
+            <Plus className="h-3.5 w-3.5" />
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -29,6 +29,15 @@ function leitura_manual:addToMainMenu(menu_items)
         end,
       },
       {
+        text = _("Sincronizar livro"),
+        enabled_func = function()
+          return self.ui ~= nil and self.ui.doc_props ~= nil
+        end,
+        callback = function()
+          self:syncCurrentBook()
+        end,
+      },
+      {
         text = _("Histórico"),
         callback = function()
           self:showHistory()
@@ -65,6 +74,11 @@ end
 function leitura_manual:openForm()
   local Wizard = require("wizard")
   Wizard:new():run()
+end
+
+function leitura_manual:syncCurrentBook()
+  local BookSync = require("book_sync")
+  BookSync.sync(self.ui)
 end
 
 function leitura_manual:configureServer()

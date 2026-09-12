@@ -2,12 +2,19 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { apiGetOpcoes, apiSalvarConfig } from "../api";
+import {
+  carregarModoEstante,
+  salvarModoEstante,
+  type ModoEstante,
+} from "../preferencias";
 
 export const Route = createFileRoute("/config")({ component: ConfigPage });
 
 interface ItemLivro {
   id: number | null;
   titulo: string;
+  autor: string;
+  imagem: string;
   md5: string;
 }
 
@@ -19,6 +26,14 @@ interface Mensagem {
 function ConfigPage() {
   const [livros, setLivros] = useState<ItemLivro[]>([]);
   const [mensagem, setMensagem] = useState<Mensagem | null>(null);
+  const [modoEstante, setModoEstante] = useState<ModoEstante>(() =>
+    carregarModoEstante(),
+  );
+
+  const definirModoEstante = (modo: ModoEstante): void => {
+    setModoEstante(modo);
+    salvarModoEstante(modo);
+  };
 
   useEffect(() => {
     apiGetOpcoes()
@@ -27,6 +42,8 @@ function ConfigPage() {
           (data.livros ?? []).map((l) => ({
             id: l.id,
             titulo: l.titulo,
+            autor: l.autor ?? "",
+            imagem: l.imagem ?? "",
             md5: l.md5 ?? "",
           })),
         ),
@@ -57,8 +74,8 @@ function ConfigPage() {
     setLivros((ls) => ls.filter((_, idx) => idx !== i));
   };
 
-  const adicionar = (): void => {
-    setLivros((ls) => [...ls, { id: null, titulo: "", md5: "" }]);
+const adicionar = (): void => {
+    setLivros((ls) => [...ls, { id: null, titulo: "", autor: "", imagem: "", md5: "" }]);
   };
 
   const salvar = async (): Promise<void> => {
@@ -70,6 +87,8 @@ function ConfigPage() {
       })
       .map((li) => ({
         titulo: li.titulo.trim(),
+        autor: li.autor.trim(),
+        imagem: li.imagem ?? "",
         md5: li.md5.trim().toLowerCase(),
       }));
 
@@ -80,6 +99,8 @@ function ConfigPage() {
         (res.livros ?? []).map((l) => ({
           id: l.id,
           titulo: l.titulo,
+          autor: l.autor ?? "",
+          imagem: l.imagem ?? "",
           md5: l.md5 ?? "",
         })),
       );
@@ -150,6 +171,13 @@ function ConfigPage() {
                     />
                     <input
                       type="text"
+                      placeholder="Autor"
+                      value={li.autor}
+                      onChange={(e) => atualizar(i, { autor: e.target.value })}
+                      className="input"
+                    />
+                    <input
+                      type="text"
                       placeholder="md5 (32 hex)"
                       value={li.md5}
                       onChange={(e) => atualizar(i, { md5: e.target.value })}
@@ -171,6 +199,33 @@ function ConfigPage() {
           })}
           <button type="button" className="btn btn-outline mt-2" onClick={adicionar}>
             + Adicionar livro
+          </button>
+        </div>
+      </div>
+
+      <div className="card mb-6">
+        <div className="border-b border-neutral-200 dark:border-neutral-800 px-4 py-3">
+          <h2 className="text-base font-semibold">Aparência da estante</h2>
+          <p className="mt-0.5 text-sm text-neutral-500 dark:text-neutral-400">
+            Como os livros são exibidos na estante (início).
+          </p>
+        </div>
+        <div className="flex gap-3 p-4">
+          <button
+            type="button"
+            onClick={() => definirModoEstante("tabela")}
+            className={`btn h-10 flex-1 ${modoEstante === "tabela" ? "btn-primary" : "btn-outline"}`}
+            title="Exibição atual em lista"
+          >
+            {modoEstante === "tabela" ? "✓ " : ""}Por tabela
+          </button>
+          <button
+            type="button"
+            onClick={() => definirModoEstante("imagem")}
+            className={`btn h-10 flex-1 ${modoEstante === "imagem" ? "btn-primary" : "btn-outline"}`}
+            title="Exibição com capas dos livros"
+          >
+            {modoEstante === "imagem" ? "✓ " : "▦ "}Por imagem
           </button>
         </div>
       </div>

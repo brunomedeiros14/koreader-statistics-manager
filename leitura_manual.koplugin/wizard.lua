@@ -7,6 +7,7 @@ local logger = require("logger")
 local PaginatedList = require("paginated_list")
 local LeituraOutbox = require("leitura_outbox")
 local StatsBooks = require("stats_books")
+local CurrentBook = require("current_book")
 
 local Wizard = {}
 
@@ -43,6 +44,25 @@ function Wizard:run()
     })
     return
   end
+
+  -- If a book is open, identify it and skip the manual selection screen.
+  local current = CurrentBook.get()
+  if current and current.md5 then
+    for _, book in ipairs(self.books) do
+      if book.md5 and book.md5:lower() == current.md5 then
+        self.data.book = book
+        self.data.last_record = LeituraOutbox.lastRecordForBook(book.md5)
+        logger.dbg("[leitura_manual] livro atual detectado:", book.title)
+        UIManager:show(InfoMessage:new{
+          text = string.format(_("Livro atual: %s"), book.title),
+          timeout = 2,
+        })
+        self:stepDatetime1()
+        return
+      end
+    end
+  end
+
   self.book_texts = {}
   self.list_items = {}
   for i, book in ipairs(self.books) do

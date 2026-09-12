@@ -201,4 +201,38 @@ function LeituraApi.markSkipped(id)
   return LeituraApi.patch(id, { leitura_sincronizada = 2 })
 end
 
+function LeituraApi.syncBook(payload)
+  if not payload or type(payload) ~= "table" then
+    return nil, "invalid_payload"
+  end
+  local ok, body = pcall(JSON.encode, payload)
+  if not ok then return nil, tostring(body) end
+
+  local sink = {}
+  local request = {
+    url = LeituraApi.getServerUrl() .. "/api/livro",
+    method = "POST",
+    sink = ltn12.sink.table(sink),
+    headers = {
+      ["accept"] = "application/json",
+      ["content-type"] = "application/json",
+      ["content-length"] = tostring(#body),
+    },
+    source = ltn12.source.string(body),
+  }
+  -- Cover images can be large, so allow a longer round-trip.
+  socketutil:set_timeout(15, 30)
+  local code, _, status = socket.skip(1, http.request(request))
+  socketutil:reset_timeout()
+
+  if type(code) ~= "number" or code < 200 or code >= 300 then
+    logger.dbg("[leitura_manual] syncBook error:", status or code)
+    return nil, tostring(status or code or "network_error")
+  end
+
+  local ok_decode, result = pcall(JSON.decode, table.concat(sink))
+  if not ok_decode then return nil, "invalid_json" end
+  return result or {}, nil
+end
+
 return LeituraApi

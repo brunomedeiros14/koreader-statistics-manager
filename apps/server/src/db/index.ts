@@ -9,6 +9,8 @@ const DATA_DIR = process.env.DATA_DIR
   : join(import.meta.dir, "../../../../data");
 const DB_PATH = join(DATA_DIR, "leitura.sqlite3");
 
+export { DATA_DIR };
+
 mkdirSync(DATA_DIR, { recursive: true });
 
 const sqlite = new Database(DB_PATH);
@@ -75,6 +77,12 @@ const opcaoCols = (db.all(sql`PRAGMA table_info(opcao)`) as Array<{ name: string
 );
 if (!opcaoCols.includes("md5")) {
   db.run(sql`ALTER TABLE opcao ADD COLUMN md5 TEXT`);
+}
+if (!opcaoCols.includes("autor")) {
+  db.run(sql`ALTER TABLE opcao ADD COLUMN autor TEXT NOT NULL DEFAULT ''`);
+}
+if (!opcaoCols.includes("imagem")) {
+  db.run(sql`ALTER TABLE opcao ADD COLUMN imagem TEXT NOT NULL DEFAULT ''`);
 }
 db.run(sql`CREATE UNIQUE INDEX IF NOT EXISTS idx_opcao_md5 ON opcao(md5)`);
 if (!leituraCols.includes("md5")) {
