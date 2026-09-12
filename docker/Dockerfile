@@ -4,20 +4,16 @@
 FROM oven/bun:1-alpine AS base
 WORKDIR /app
 
-# --- Dependências (estágio descartável: gera node_modules do monorepo) -------
-FROM base AS deps
-COPY package.json bun.lock tsconfig.base.json ./
-COPY apps/server/package.json ./apps/server/
-COPY apps/web/package.json ./apps/web/
-COPY libs/common/package.json ./libs/common/
-RUN bun install --frozen-lockfile
-
 # --- Build do frontend (@leitura/web) ----------------------------------------
-FROM base AS builder
-COPY --from=deps /app/node_modules ./node_modules
+# O bun instala as dependências de cada workspace em apps/*/node_modules
+# (apontando para o virtual store em node_modules/.bun), então devemos copiar a
+# fonte ANTES do bun install — caso contrário o `COPY apps ./apps` apaga esses
+# node_modules e o `vite build` falha com "command not found" (exit 127).
+FROM base AS build-stage
 COPY package.json bun.lock tsconfig.base.json ./
 COPY apps ./apps
 COPY libs ./libs
+RUN bun install --frozen-lockfile
 RUN bun run --filter @leitura/web build
 
 # --- Runtime ------------------------------------------------------------------
@@ -34,11 +30,11 @@ RUN apk add --no-cache su-exec \
 
 # Imagem só com o essencial: node_modules + server + common (TS roda nativo) +
 # o SPA compilado em apps/web/dist.
-COPY --from=builder --chown=app:app /app/node_modules ./node_modules
-COPY --from=builder --chown=app:app /app/package.json /app/bun.lock ./
-COPY --from=builder --chown=app:app /app/apps/server ./apps/server
-COPY --from=builder --chown=app:app /app/libs ./libs
-COPY --from=builder --chown=app:app /app/apps/web/dist ./apps/web/dist
+COPY --from=build-stage --chown=app:app /app/node_modules ./node_modules
+COPY --from=build-stage --chown=app:app /app/package.json /app/bun.lock ./
+COPY --from=build-stage --chown=app:app /app/apps/server ./apps/server
+COPY --from=build-stage --chown=app:app /app/libs ./libs
+COPY --from=build-stage --chown=app:app /app/apps/web/dist ./apps/web/dist
 COPY --chown=app:app docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
