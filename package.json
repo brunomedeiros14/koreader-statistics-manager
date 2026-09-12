@@ -9,7 +9,8 @@
     "dev": "concurrently -k -n server,web \"bun run --filter @leitura/server dev\" \"bun run --filter @leitura/web dev\"",
     "build": "bun run --filter @leitura/web build",
     "start": "bun run --filter @leitura/server start",
-    "typecheck": "bun run --filter @leitura/common typecheck && bun run --filter @leitura/server typecheck && bun run --filter @leitura/web typecheck"
+    "typecheck": "bun run --filter @leitura/common typecheck && bun run --filter @leitura/server typecheck && bun run --filter @leitura/web typecheck",
+    "build-plugin": "bash scripts/build-plugin.sh"
   },
   "devDependencies": {
     "concurrently": "^10.0.5",

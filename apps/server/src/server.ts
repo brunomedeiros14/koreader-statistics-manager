@@ -13,6 +13,7 @@ import { db } from "./db";
 import { leitura, opcao, type LeituraInsert } from "./db/schema";
 import { validatePayload, validatePayloadPatch } from "./validation";
 import { COVERS_DIR, limparCapasOrfas, resolveCover } from "./covers";
+import { pluginDownload, pluginManifest } from "./plugin";
 
 const PORT = Number(process.env.PORT ?? 3000);
 
@@ -118,6 +119,20 @@ const app = new Elysia()
   .get("/assets/*", ({ params }) => asset(params["*"] ?? ""), {
     detail: { hide: true },
   })
+  .get(
+    "/api/plugin",
+    () => pluginManifest(),
+    {
+      detail: { summary: "Versão do plugin disponível no servidor", tags: ["Plugin"] },
+    },
+  )
+  .get(
+    "/api/plugin/download",
+    () => pluginDownload(),
+    {
+      detail: { summary: "Baixa o pacote atualizado do plugin (.zip)", tags: ["Plugin"] },
+    },
+  )
   .get(
     "/covers/:file",
     ({ params, set }) => {

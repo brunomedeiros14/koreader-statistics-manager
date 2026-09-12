@@ -11,6 +11,8 @@ local PaginatedList = require("paginated_list")
 local leitura_manual = WidgetContainer:extend({
   name = "leitura_manual",
   is_doc_only = false,
+  -- Keep in sync with _meta.lua (the server reads its "version" field).
+  PLUGIN_VERSION = "0.1.0",
 })
 
 function leitura_manual:init()
@@ -65,6 +67,13 @@ function leitura_manual:addToMainMenu(menu_items)
         text = _("Definir servidor"),
         callback = function()
           self:configureServer()
+        end,
+      },
+      {
+        text = _("Atualizar plugin"),
+        callback = function()
+          local Updater = require("plugin_update")
+          Updater.check(self)
         end,
       },
     },
