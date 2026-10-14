@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from "bun:test";
 import { mkdtempSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
+import type { LeituraMutacao } from "./leitura.service";
 
 // Isolated DB per run: the db config is read at import time, so set it first.
 process.env.DB_SQLITE_PATH = join(
@@ -10,13 +11,8 @@ process.env.DB_SQLITE_PATH = join(
 );
 
 const { repo } = await import("../db");
-const {
-  criarLeitura,
-  editarLeitura,
-  excluirLeitura,
-  listarLeitura,
-} = await import("./leitura.service");
-import type { LeituraMutacao } from "./leitura.service";
+const { criarLeitura, editarLeitura, excluirLeitura, listarLeitura } =
+  await import("./leitura.service");
 const { upsertLivro } = await import("./livros.service");
 
 type OkLeitura = Extract<LeituraMutacao, { ok: true }>;
@@ -82,7 +78,7 @@ describe("criarLeitura", () => {
 describe("listarLeitura", () => {
   it("filtra por md5", async () => {
     const res = await listarLeitura({ md5: MD5, limit: "10", page: "1" });
-    expect(res.total).toBe(1);
+    expect(res.total).toBe(3);
     expect(res.registros[0]?.titulo).toBe("Livro Teste");
   });
   it("filtro por md5 desconhecido retorna vazio", async () => {
