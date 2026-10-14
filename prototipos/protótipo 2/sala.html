@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>A Sala — sua sala de leitura</title>
+  <link rel="stylesheet" href="estilo.css" />
+</head>
+<body>
+  <header class="cabecalho">
+    <div class="container linha">
+      <span class="marca">A Sala</span>
+      <nav class="links">
+        <a href="sala.html" class="ativo">A sala</a>
+        <a href="canto.html">Canto do leitor</a>
+        <a href="memorial.html">Memorial</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 10px;">
+      <div>
+        <p class="eyebrow">Boa noite na sua sala</p>
+        <h1 class="titulo" style="font-size: 1.6rem;">A lâmpada está acesa</h1>
+      </div>
+      <p class="sub" style="margin: 0;">Há uma leitura em andamento — a casa sabe.</p>
+    </section>
+
+    <section class="corpo-sala" style="margin-top: 16px;">
+      <div class="janela">
+        <div class="ceu" id="ceu-janela"></div>
+        <span class="sol" id="sol-janela"></span>
+      </div>
+
+      <div class="luminaria" id="luminaria">
+        <div class="base"></div>
+        <div class="corda"></div>
+        <div class="lamp"></div>
+      </div>
+
+      <div class="bola" title="poltrona de couro"></div>
+
+      <div class="planta">
+        <span class="folha"></span>
+        <span class="folha"></span>
+        <span class="folha"></span>
+        <span class="folha"></span>
+        <span class="vaso"></span>
+        <span class="gota" id="gota-planta"></span>
+      </div>
+
+      <div class="mesa"></div>
+
+      <div class="estante">
+        <div class="tábua">
+          <span class="mini-capa" style="background: linear-gradient(160deg, #6d4a2f, #3a2a18);"><span class="fita"></span></span>
+          <span class="mini-capa" style="background: linear-gradient(160deg, #3c5a52, #1f332e);"><span class="fita"></span></span>
+          <span class="mini-capa" style="background: linear-gradient(160deg, #7a4a3a, #40241c);"></span>
+        </div>
+        <div class="tábua">
+          <span class="mini-capa" style="background: linear-gradient(160deg, #4f4a70, #2a2740);"></span>
+          <span class="mini-capa" style="background: linear-gradient(160deg, #8a5a3e, #4a2f1e);"><span class="fita"></span></span>
+        </div>
+      </div>
+
+      <div class="aviso-sala">A estante cresceu 1 livro esta semana · as plantas beberam 142 minutos</div>
+    </section>
+
+    <section class="lado-a-lado" style="margin-top: 20px;">
+      <div style="border: 1px solid var(--linha); border-radius: 12px; padding: 18px 20px; background: var(--parede);">
+        <p class="eyebrow">O que a sala lembra de hoje</p>
+        <h2 class="titulo" style="font-size: 1.12rem; margin-top: 6px;">Fogo de Chão ganhou 40 minutos</h2>
+        <p class="sub">Você entrou, acendeu a luz e saiu na página 132. A casa guardou o lugar.</p>
+        <a class="btn btn-primario" href="canto.html" style="margin-top: 14px; text-decoration: none;">Voltar para o canto</a>
+      </div>
+      <div style="border: 1px solid var(--linha); border-radius: 12px; padding: 18px 20px; background: var(--parede);">
+        <p class="eyebrow">Plantas da estante</p>
+        <p class="sub" style="margin: 6px 0 0;">Cada semana sem leitura, a folhagem perde uma gota. Cada retorno, ela bebe os minutos de volta.</p>
+        <p class="fina" style="margin-top: 12px;">3 vasos verdes no mês · <a href="memorial.html" style="text-decoration: underline; text-underline-offset: 3px;">ver o memorial</a></p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="rodape-fino">
+    <div class="container">
+      <a href="canto.html">acender o canto do leitor</a> · a sala existe para você voltar para ela
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      const ceu = document.getElementById("ceu-janela");
+      const sol = document.getElementById("sol-janela");
+      const hora = new Date().getHours();
+      if (hora >= 19 || hora < 6) {
+        ceu.style.background = "var(--janela-noite)";
+        sol.style.background = "#f4e3c2";
+        sol.style.boxShadow = "0 0 30px 10px rgba(244,227,194,0.7)";
+      }
+      const gota = document.getElementById("gota-planta");
+      gota.textContent = "●";
+    })();
+  </script>
+</body>
+</html>

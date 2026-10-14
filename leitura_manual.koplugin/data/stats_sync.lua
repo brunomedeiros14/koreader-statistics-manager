@@ -1,7 +1,8 @@
 local _ = require("gettext")
 local SQ3 = require("lua-ljsqlite3/init")
 local logger = require("logger")
-local StatsBooks = require("stats_books")
+local StatsBooks = require("data/stats_books")
+local DateTime = require("lib/datetime")
 
 local StatsSync = {}
 
@@ -47,10 +48,7 @@ local function getReferenceTotalPages(db, bookId, sourceTotalPages)
 end
 
 local function parseIsoToTime(iso)
-  local y, m, d, h, mi = iso:match("(%d+)-(%d+)-(%d+)T(%d+):(%d+)")
-  if not y then return nil end
-  return os.time{ year = tonumber(y), month = tonumber(m), day = tonumber(d),
-                  hour = tonumber(h), min = tonumber(mi), sec = 0 }
+  return DateTime.parseIsoToUnix(iso)
 end
 
 -- Inserts page_stat_data rows for one reading, distributing the elapsed time

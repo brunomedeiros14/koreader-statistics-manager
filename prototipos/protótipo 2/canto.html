@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>A Sala — Canto do leitor</title>
+  <link rel="stylesheet" href="estilo.css" />
+</head>
+<body>
+  <header class="cabecalho">
+    <div class="container linha">
+      <span class="marca">A Sala</span>
+      <nav class="links">
+        <a href="sala.html">A sala</a>
+        <a href="canto.html" class="ativo">Canto do leitor</a>
+        <a href="memorial.html">Memorial</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container container-estreito" style="max-width: 560px;">
+    <div class="centralizado" style="text-align: center;">
+      <p class="eyebrow">Canto do leitor</p>
+      <h1 class="titulo" style="font-size: 1.6rem; margin-top: 6px;">Fogo de Chão</h1>
+      <p class="sub">A luz está acesa desde as 21h04 · página 87 → 132 ainda em aberto.</p>
+    </div>
+
+    <div class="abajur">
+      <div class="tampa"></div>
+      <div class="pé"></div>
+    </div>
+
+    <div style="text-align: center; margin-top: 4px;">
+      <p class="timer" id="canto-timer">00:24:17</p>
+      <p class="fina">de luz acesa · o e-reader apaga a tela, a poltrona continua aqui</p>
+    </div>
+
+    <section style="border: 1px solid var(--linha); border-radius: 12px; padding: 18px 20px; background: var(--parede); margin-top: 18px;">
+      <p class="eyebrow">Onde o livro ficou</p>
+      <div class="barra" style="margin: 12px 0 6px;">
+        <i style="width: 41%;"></i>
+      </div>
+      <p class="sub">Página 132 de 320 · fita do marcador já colocada na estante lá em cima.</p>
+      <div class="lado-a-lado" style="margin-top: 16px;">
+        <button class="btn btn-linha">Apagar a luz (descartar)</button>
+        <button class="btn btn-primario">Guardar essa noite (finalizar)</button>
+      </div>
+    </section>
+
+    <p class="fina" style="text-align: center; margin-top: 26px;">
+      No memorial, essa noite vira uma lenha a mais na chaminé da semana.
+    </p>
+  </main>
+
+  <footer class="rodape-fino">
+    <div class="container">
+      <a href="sala.html">voltar para a sala</a> · <a href="memorial.html">ver o memorial</a>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      const inicio = Date.now() - 24 * 60000 - 17 * 1000;
+      const timer = document.getElementById("canto-timer");
+      const fmt = (ms) => {
+        const s = Math.floor(ms / 1000);
+        const h = String(Math.floor(s / 3600)).padStart(2, "0");
+        const m = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
+        const seg = String(s % 60).padStart(2, "0");
+        return h + ":" + m + ":" + seg;
+      };
+      const passo = () => { timer.textContent = fmt(Date.now() - inicio); };
+      passo();
+      window.setInterval(passo, 1000);
+    })();
+  </script>
+</body>
+</html>

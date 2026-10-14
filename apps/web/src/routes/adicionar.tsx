@@ -3,8 +3,10 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { apiBuscarUltimaLeitura, apiGetOpcoes, apiPostLeitura } from "../api";
+import { BannerErro } from "../components/BannerErro";
 import { Modal } from "../components/Modal";
-import { agoraLocal, fmtLocal, uid } from "../util";
+import { useApi } from "../hooks/useApi";
+import { agoraLocal, fmtLocal, paraUtc, uid } from "../util";
 
 export const Route = createFileRoute("/adicionar")({
   component: AdicionarPage,
@@ -25,19 +27,16 @@ function AdicionarPage() {
   const [erros, setErros] = useState<Record<string, string>>({});
   const [dialogAberto, setDialogAberto] = useState(false);
   const [sucesso, setSucesso] = useState(false);
+  const opcoes = useApi(apiGetOpcoes, [livro]);
 
   useEffect(() => {
-    apiGetOpcoes()
-      .then((data) => {
-        const alvo =
-          (data.livros ?? []).find((l) => l.id === Number(livro)) ?? null;
-        setLivroAtivo(alvo);
-        setLivrosCarregados(true);
-        if (alvo?.md5) preencherPaginas(alvo);
-      })
-      .catch(() => setLivrosCarregados(true));
+    const alvo =
+      (opcoes.dados?.livros ?? []).find((l) => l.id === Number(livro)) ?? null;
+    setLivroAtivo(alvo);
+    setLivrosCarregados(true);
+    if (alvo?.md5) preencherPaginas(alvo);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [livro]);
+  }, [opcoes.dados, livro]);
 
   const preencherPaginas = async (livroSelecionado: Livro): Promise<void> => {
     if (!livroSelecionado?.md5) return;
@@ -86,8 +85,8 @@ function AdicionarPage() {
       md5: livroAtivo?.md5 ?? "",
       titulo: livroAtivo?.titulo,
       origem: "web" as const,
-      data_hora_1: dt1,
-      data_hora_2: dt2,
+      data_hora_1: paraUtc(dt1),
+      data_hora_2: paraUtc(dt2),
       numero_1: parseInt(num1, 10),
       numero_2: parseInt(num2, 10),
       numero_3: parseInt(num3, 10),
@@ -105,12 +104,12 @@ function AdicionarPage() {
 
   if (sucesso) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-neutral-50 dark:bg-neutral-950 px-4">
-        <div className="card w-full max-w-sm p-6 text-center">
-          <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400">
+      <div className="flex h-full items-center justify-center">
+        <div className="card mx-auto w-full max-w-sm p-6 text-center">
+          <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400">
             ✓
           </div>
-          <p className="text-base font-semibold">
+          <p className="text-base font-semibold text-tinta">
             Leitura registrada com sucesso!
           </p>
           <Link to="/" className="btn btn-outline mt-4 w-full">
@@ -121,50 +120,43 @@ function AdicionarPage() {
     );
   }
 
+  if (opcoes.erro) {
+    return <BannerErro texto={opcoes.erro} aoTentar={opcoes.recarregar} />;
+  }
+
   if (livrosCarregados && !livroAtivo) {
     return (
-      <div className="mx-auto max-w-lg px-4 py-8">
-        <div className="card p-6 text-sm text-neutral-700 dark:text-neutral-300">
-          Livro não encontrado.{" "}
-          <Link to="/" className="underline underline-offset-4">
-            Voltar para a estante
-          </Link>
-          .
-        </div>
+      <div className="card p-6 text-sm text-tinta-2">
+        Livro não encontrado.{" "}
+        <Link to="/" className="text-fita underline underline-offset-4">
+          Voltar para a estante
+        </Link>
+        .
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-lg px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Adicionar leitura
-        </h1>
-        <Link
-          to="/"
-          className="text-sm text-neutral-500 dark:text-neutral-400 underline-offset-4 hover:text-neutral-900 dark:hover:text-neutral-50 hover:underline"
-        >
-          ← Estante
-        </Link>
-      </div>
+    <div>
+      <header className="mb-7">
+        <span className="eyebrow">Adicionar leitura</span>
+        <h1 className="titulo-pag">Uma noite de leitura</h1>
+      </header>
 
       {livrosCarregados && livroAtivo ? (
         <section className="card mb-6">
-          <div className="border-b border-neutral-200 dark:border-neutral-800 px-4 py-3">
-            <h2 className="text-sm font-semibold">Livro</h2>
+          <div className="border-b border-linha px-5 py-3">
+            <h2 className="text-sm font-semibold text-tinta">Livro</h2>
           </div>
-          <div className="px-4 py-3 text-sm text-neutral-700 dark:text-neutral-300">
-            {livroAtivo.titulo}
-          </div>
+          <div className="px-5 py-3 text-sm text-tinta">{livroAtivo.titulo}</div>
         </section>
       ) : null}
 
       <section className="card mb-6">
-        <div className="border-b border-neutral-200 dark:border-neutral-800 px-4 py-3">
-          <h2 className="text-sm font-semibold">Período da leitura</h2>
+        <div className="border-b border-linha px-5 py-3">
+          <h2 className="text-sm font-semibold text-tinta">Período da leitura</h2>
         </div>
-        <div className="space-y-4 p-4">
+        <div className="space-y-4 p-5">
           <div>
             <label htmlFor="dt1" className="label">
               Início da leitura
@@ -199,10 +191,10 @@ function AdicionarPage() {
       </section>
 
       <section className="card mb-6">
-        <div className="border-b border-neutral-200 dark:border-neutral-800 px-4 py-3">
-          <h2 className="text-sm font-semibold">Páginas</h2>
+        <div className="border-b border-linha px-5 py-3">
+          <h2 className="text-sm font-semibold text-tinta">Páginas</h2>
         </div>
-        <div className="space-y-4 p-4">
+        <div className="space-y-4 p-5">
           <div>
             <label htmlFor="num-1" className="label">
               Página inicial da leitura
@@ -256,7 +248,7 @@ function AdicionarPage() {
 
       <button
         type="button"
-        className="btn btn-primary w-full h-11 text-base"
+        className="btn btn-primario h-11 w-full text-base"
         onClick={abrirDialog}
         disabled={!livroAtivo}
       >
@@ -268,7 +260,7 @@ function AdicionarPage() {
         onClose={() => setDialogAberto(false)}
         title="Confirmar leitura"
         footer={
-          <div className="flex justify-end gap-2 border-t border-neutral-200 dark:border-neutral-800 px-4 py-3">
+          <div className="flex justify-end gap-2 border-t border-linha px-4 py-3">
             <button
               type="button"
               className="btn btn-outline"
@@ -276,24 +268,24 @@ function AdicionarPage() {
             >
               Cancelar
             </button>
-            <button type="button" className="btn btn-primary" onClick={confirmar}>
+            <button type="button" className="btn btn-primario" onClick={confirmar}>
               Confirmar
             </button>
           </div>
         }
       >
-        <div className="text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">
-          <strong>Livro:</strong> {livroAtivo?.titulo ?? "—"}
+        <div className="text-sm leading-relaxed text-tinta-2">
+          <strong className="text-tinta">Livro:</strong> {livroAtivo?.titulo ?? "—"}
           <br />
-          <strong>Início:</strong> {fmtLocal(dt1)}
+          <strong className="text-tinta">Início:</strong> {fmtLocal(dt1)}
           <br />
-          <strong>Fim:</strong> {fmtLocal(dt2)}
+          <strong className="text-tinta">Fim:</strong> {fmtLocal(dt2)}
           <br />
-          <strong>Página inicial:</strong> {num1}
+          <strong className="text-tinta">Página inicial:</strong> {num1}
           <br />
-          <strong>Página final:</strong> {num2}
+          <strong className="text-tinta">Página final:</strong> {num2}
           <br />
-          <strong>Total de páginas:</strong> {num3}
+          <strong className="text-tinta">Total de páginas:</strong> {num3}
         </div>
       </Modal>
     </div>

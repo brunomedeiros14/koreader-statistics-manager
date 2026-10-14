@@ -4,10 +4,11 @@ local InfoMessage = require("ui/widget/infomessage")
 local SpinWidget = require("ui/widget/spinwidget")
 local UIManager = require("ui/uimanager")
 local logger = require("logger")
-local PaginatedList = require("paginated_list")
-local LeituraOutbox = require("leitura_outbox")
-local StatsBooks = require("stats_books")
-local CurrentBook = require("current_book")
+local PaginatedList = require("ui/paginated_list")
+local LeituraOutbox = require("data/leitura_outbox")
+local StatsBooks = require("data/stats_books")
+local CurrentBook = require("core/current_book")
+local DateTime = require("lib/datetime")
 
 local Wizard = {}
 
@@ -205,8 +206,8 @@ function Wizard:finish()
     md5 = book.md5,
     titulo = book.title,
     origem = "plugin",
-    data_hora_1 = self:toIso(d.data_hora_1),
-    data_hora_2 = self:toIso(d.data_hora_2),
+    data_hora_1 = DateTime.toUtcIso(d.data_hora_1),
+    data_hora_2 = DateTime.toUtcIso(d.data_hora_2),
     numero_1 = tonumber(d.numero_1) or 0,
     numero_2 = tonumber(d.numero_2) or 0,
     numero_3 = tonumber(d.numero_3) or 0,
@@ -224,13 +225,6 @@ function Wizard:finish()
   UIManager:show(InfoMessage:new{
     text = summary,
   })
-end
-
-function Wizard:toIso(ts)
-  if not ts then
-    return nil
-  end
-  return string.format("%04d-%02d-%02dT%02d:%02d", ts.year, ts.month, ts.day, ts.hour, ts.min)
 end
 
 function Wizard:formatTimestamp(ts)

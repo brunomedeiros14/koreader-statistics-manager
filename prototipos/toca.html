@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Leitura Manual — A toca</title>
+  <link rel="stylesheet" href="estilo.css" />
+</head>
+<body class="noite">
+  <header class="cabecalho">
+    <div class="container">
+      <span class="marca">Leitura<span> Manual</span></span>
+      <nav class="links">
+        <a href="estante.html">Estante</a>
+        <a href="leitura.html">Leitura atual</a>
+        <a href="registros.html">Registros</a>
+        <a href="carta.html">Carta</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container container-fino centralizado">
+    <p class="eyebrow">Hora de desligar o resto</p>
+    <h1 class="titulo" style="font-size: 2rem; margin-top: 8px;">Boa noite.</h1>
+    <p class="sub" style="margin: 6px 0 0;">A toca está pronta — uma vela por sessão, um livro à espera.</p>
+
+    <div class="vela" style="margin-top: 30px;">
+      <span class="halo"></span>
+      <span class="corpo" id="vela-corpo"></span>
+      <span class="pavio"></span>
+      <span class="chama"></span>
+    </div>
+
+    <div class="centralizado" style="margin-top: 8px;">
+      <p class="timer" id="vela-timer">00:00:00</p>
+      <p class="timer-sufixo">de vela acesa · dura cerca de 45 min por sessão</p>
+    </div>
+
+    <section class="cel" style="margin-top: 26px; text-align: left; background: var(--papel);">
+      <p class="eyebrow">Para esta noite</p>
+      <h2 class="titulo" style="font-size: 1.25rem; margin-top: 6px;">Fogo de Chão</h2>
+      <p class="sub">Retome da página <b>132</b> — a fita continua onde você deixou.</p>
+      <div class="barra" style="margin-top: 10px;">
+        <i style="width: 41%;"></i>
+      </div>
+      <div class="hero-acoes" style="margin-top: 16px;">
+        <button class="btn btn-primario">Acender e começar</button>
+        <a class="btn btn-linha" href="estante.html">Trocar de livro</a>
+      </div>
+    </section>
+
+    <p class="fina" style="margin-top: 34px;">
+      A tela se apaga no e-reader; a vela continua aqui, queimando em silêncio.
+    </p>
+  </main>
+
+  <footer class="rodape-fino">
+    <div class="container fina">
+      <a href="carta.html">Ler a carta da semana</a> · <a href="estante.html">voltar para a estante</a>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      const base = localStorage.getItem("toca-acessa");
+      localStorage.setItem("toca-acessa", String(Date.now()));
+      const inicio = base ? Math.max(Date.now() - Number(base), 0) : 0;
+      const ALVO = 45 * 60 * 1000;
+      const corpo = document.getElementById("vela-corpo");
+      const timer = document.getElementById("vela-timer");
+      const fmt = (ms) => {
+        const s = Math.floor(ms / 1000);
+        const h = String(Math.floor(s / 3600)).padStart(2, "0");
+        const m = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
+        const seg = String(s % 60).padStart(2, "0");
+        return h + ":" + m + ":" + seg;
+      };
+      const passo = () => {
+        const passado = Date.now() - inicio;
+        const fracao = Math.min(passado / ALVO, 1);
+        corpo.style.height = Math.round(110 * (1 - fracao)) + "px";
+        timer.textContent = fmt(passado);
+        if (fracao >= 1) {
+          corpo.style.background = "linear-gradient(180deg,#d9c194,#b89a6a)";
+          timer.textContent = "00:45:00 · a vela acabou";
+        }
+      };
+      passo();
+      window.setInterval(passo, 1000);
+    })();
+  </script>
+</body>
+</html>

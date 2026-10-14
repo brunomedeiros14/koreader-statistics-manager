@@ -4,9 +4,10 @@ local InputDialog = require("ui/widget/inputdialog")
 local InfoMessage = require("ui/widget/infomessage")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local LeituraApi = require("leitura_api")
-local LeituraOutbox = require("leitura_outbox")
-local PaginatedList = require("paginated_list")
+local LeituraApi = require("api/leitura_api")
+local LeituraOutbox = require("data/leitura_outbox")
+local PaginatedList = require("ui/paginated_list")
+local DateTime = require("lib/datetime")
 
 local leitura_manual = WidgetContainer:extend({
   name = "leitura_manual",
@@ -70,9 +71,15 @@ function leitura_manual:addToMainMenu(menu_items)
         end,
       },
       {
+        text = _("Definir token de acesso"),
+        callback = function()
+          self:configureToken()
+        end,
+      },
+      {
         text = _("Atualizar plugin"),
         callback = function()
-          local Updater = require("plugin_update")
+          local Updater = require("api/plugin_update")
           Updater.check(self)
         end,
       },
@@ -81,13 +88,41 @@ function leitura_manual:addToMainMenu(menu_items)
 end
 
 function leitura_manual:openForm()
-  local Wizard = require("wizard")
+  local Wizard = require("ui/wizard")
   Wizard:new():run()
 end
 
 function leitura_manual:syncCurrentBook()
-  local BookSync = require("book_sync")
+  local BookSync = require("core/book_sync")
   BookSync.sync(self.ui)
+end
+
+function leitura_manual:configureToken()
+  local dialog
+  dialog = InputDialog:new {
+    title = _("Token de acesso"),
+    description = _("Preencha se o servidor exigir autenticação (LEITURA_TOKEN). Deixe vazio para remover."),
+    input = LeituraApi.getToken(),
+    buttons = {
+      {
+        {
+          text = _("Cancelar"),
+          id = "close",
+          callback = function()
+            UIManager:close(dialog)
+          end,
+        },
+        {
+          text = _("Salvar"),
+          callback = function()
+            LeituraApi.setToken(dialog:getInputText())
+            UIManager:close(dialog)
+          end,
+        },
+      },
+    },
+  }
+  UIManager:show(dialog)
 end
 
 function leitura_manual:configureServer()
@@ -144,7 +179,7 @@ end
 --   1) local pending outbox records (independent of connectivity);
 --   2) server records with leitura_sincronizada = 0 (marked synced/skipped).
 function leitura_manual:syncStats()
-  local StatsSync = require("stats_sync")
+  local StatsSync = require("data/stats_sync")
 
   -- Opportunity to push pending local records before pulling.
   LeituraOutbox.flush()
@@ -332,12 +367,10 @@ function leitura_manual:durationSeconds(record)
   local a = record.data_hora_1
   local b = record.data_hora_2
   if not a or not b then return nil end
-  local y1, m1, d1, h1, mi1 = a:match("(%d+)-(%d+)-(%d+)T(%d+):(%d+)")
-  local y2, m2, d2, h2, mi2 = b:match("(%d+)-(%d+)-(%d+)T(%d+):(%d+)")
-  if not y1 or not y2 then return nil end
-  return (tonumber(h2) - tonumber(h1)) * 3600
-      + (tonumber(mi2) - tonumber(mi1)) * 60
-      + (tonumber(d2) - tonumber(d1)) * 86400
+  local t1 = DateTime.parseIsoToUnix(a)
+  local t2 = DateTime.parseIsoToUnix(b)
+  if not t1 or not t2 then return nil end
+  return t2 - t1
 end
 
 function leitura_manual:payloadDuration(record)

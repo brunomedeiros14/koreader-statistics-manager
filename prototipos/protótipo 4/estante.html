@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Leitura Manual — Estante</title>
+  <link rel="stylesheet" href="estilo.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="side">
+      <div class="marca">
+        <div class="nome">Leitura Manual</div>
+        <div class="sub">caderno de estante</div>
+      </div>
+      <nav class="mv">
+        <a class="mv-item ativo" href="estante.html">Estante</a>
+        <a class="mv-item" href="leitura.html">Leitura ativa</a>
+        <a class="mv-item" href="registros.html">Registros</a>
+        <a class="mv-item" href="calendario.html">Calendário</a>
+      </nav>
+      <div class="side-tip">
+        <span class="lamp"></span>a lâmpada está acesa desde as 21h04 · pág 132
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="main-inner">
+        <p class="eyebrow">Pegue onde parou</p>
+        <h1 class="titulo-pag">Fogo de Chão</h1>
+        <p class="sub">Página 132 de 320 · último registro hoje às 21h04.</p>
+
+        <section class="cartao hero" style="margin-top: 16px;">
+          <div class="hero-capa">
+            <div class="capa">
+              <div style="position: absolute; inset: 0; background: linear-gradient(160deg, #6d4a2f, #3a2a18);"></div>
+              <span class="capa-titulo">Fogo de Chão</span>
+              <span class="fita-mini">41%</span>
+            </div>
+          </div>
+          <div class="hero-info">
+            <div class="barra"><i style="width: 41%;"></i></div>
+            <p class="sub">A fita do marcador ficou na 132. O capítulo seguinte começa do outro lado da página virada.</p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px;">
+              <a class="btn btn-primario" href="leitura.html">Continuar lendo</a>
+              <button class="btn btn-linha">Marcar outra leitura</button>
+            </div>
+          </div>
+        </section>
+
+        <section style="margin-top: 30px;">
+          <p class="eyebrow" style="margin-bottom: 14px;">Sua estante</p>
+          <div class="prateleira">
+            <article class="item-livro">
+              <div class="capa" style="transform: rotate(-0.6deg);">
+                <div style="position: absolute; inset: 0; background: linear-gradient(160deg, #3c5a52, #1f332e);"></div>
+                <span class="capa-titulo">Água Viva</span>
+                <span class="fita-mini">43%</span>
+              </div>
+              <p style="font-weight: 700; font-size: 0.92rem;">Água Viva</p>
+              <p class="fina">na página 41 · 35 min na segunda</p>
+            </article>
+            <article class="item-livro">
+              <div class="capa" style="transform: rotate(0.6deg);">
+                <div style="position: absolute; inset: 0; background: linear-gradient(160deg, #8a5a3e, #4a2f1e);"></div>
+                <span class="capa-titulo">Cartas a um Jovem Poeta</span>
+                <span class="fita-mini">31%</span>
+              </div>
+              <p style="font-weight: 700; font-size: 0.92rem;">Cartas a um Jovem Poeta</p>
+              <p class="fina">na página 24 · lido aos pedacinhos</p>
+            </article>
+            <article class="item-livro">
+              <div class="capa" style="transform: rotate(-0.3deg);">
+                <div style="position: absolute; inset: 0; background: linear-gradient(160deg, #4f4a70, #2a2740);"></div>
+                <span class="capa-titulo">Vigília</span>
+              </div>
+              <p style="font-weight: 700; font-size: 0.92rem;">Vigília</p>
+              <p class="fina">ainda no início · sem fita</p>
+            </article>
+          </div>
+          <p class="fina" style="margin-top: 18px;">Quatro livros respirando na estante — cada um esperando sua vez de ser aberto.</p>
+        </section>
+
+        <footer class="rodape-in">
+          Nenhum registro precisa ser lembrado — tudo alimenta a estante. <a style="color: var(--fita); text-decoration: underline; text-underline-offset: 3px;" href="calendario.html">ver o calendário do mês</a>
+        </footer>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

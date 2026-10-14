@@ -9,8 +9,17 @@ import type {
   StatsResponse,
 } from "@leitura/common";
 
+// B.2: token opcional injetado pelo servidor via <meta name="leitura-token">.
+const tokenMeta = (): string | null =>
+  document.querySelector('meta[name="leitura-token"]')?.getAttribute("content") ??
+  null;
+
 const json = async <T>(url: string, init?: RequestInit): Promise<T> => {
-  const res = await fetch(url, init);
+  // Todo pedido (GET incluso) leva o token quando a auth está ativa.
+  const headers = new Headers(init?.headers);
+  const token = tokenMeta();
+  if (token) headers.set("Authorization", "Bearer " + token);
+  const res = await fetch(url, { ...init, headers });
   return res.json() as Promise<T>;
 };
 

@@ -10,6 +10,7 @@
     "build": "bun run --filter @leitura/web build",
     "start": "bun run --filter @leitura/server start",
     "typecheck": "bun run --filter @leitura/common typecheck && bun run --filter @leitura/server typecheck && bun run --filter @leitura/web typecheck",
+    "test": "bun test",
     "build-plugin": "bash scripts/build-plugin.sh"
   },
   "devDependencies": {

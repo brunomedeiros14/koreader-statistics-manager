@@ -3,8 +3,8 @@ local InfoMessage = require("ui/widget/infomessage")
 local UIManager = require("ui/uimanager")
 local logger = require("logger")
 local DataStorage = require("datastorage")
-local CurrentBook = require("current_book")
-local LeituraApi = require("leitura_api")
+local CurrentBook = require("core/current_book")
+local LeituraApi = require("api/leitura_api")
 
 local BookSync = {}
 

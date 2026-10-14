@@ -3,12 +3,10 @@ local ConfirmBox = require("ui/widget/confirmbox")
 local InfoMessage = require("ui/widget/infomessage")
 local UIManager = require("ui/uimanager")
 local lfs = require("libs/libkoreader-lfs")
-local logger = require("logger")
 local socket = require("socket")
 local socketutil = require("socketutil")
 local http = require("socket.http")
 local ltn12 = require("ltn12")
-local JSON = require("json")
 local LeituraApi = require("leitura_api")
 
 local Updater = {}
@@ -35,25 +33,8 @@ local function sq(path)
 end
 
 Updater.getManifest = function()
-  local sink = {}
-  local request = {
-    url = LeituraApi.getServerUrl() .. "/api/plugin",
-    method = "GET",
-    sink = ltn12.sink.table(sink),
-    headers = { ["accept"] = "application/json" },
-  }
-  socketutil:set_timeout(5, 10)
-  local code, _, status = socket.skip(1, http.request(request))
-  socketutil:reset_timeout()
-
-  if type(code) ~= "number" or code < 200 or code >= 300 then
-    logger.dbg("[leitura_manual] getManifest error:", status or code)
-    return nil, tostring(status or code or "network_error")
-  end
-
-  local ok, result = pcall(JSON.decode, table.concat(sink))
-  if not ok then return nil, "invalid_json" end
-  return result or {}
+  -- Reusa o request HTTP/JSON único do plugin (L.3/leitura_api.req).
+  return LeituraApi.req("GET", "/api/plugin")
 end
 
 Updater.downloadZip = function(dest)

@@ -1,72 +1,37 @@
-import type {
-  LeituraRegistro,
-  Livro,
-  StatsResponse,
-} from "@leitura/common";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import type { LeituraRegistro, Livro } from "@leitura/common";
+import { ChevronDown, Pencil, RotateCcw, Trash2 } from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
 import {
+  Fragment,
   useCallback,
   useEffect,
-  useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
+import { createPortal } from "react-dom";
 
 import {
   apiDeleteLeitura,
   apiGetOpcoes,
   apiListaLeitura,
   apiPatchLeitura,
-  apiStats,
 } from "../api";
+import { BannerErro } from "../components/BannerErro";
 import { Modal } from "../components/Modal";
+import { useApi } from "../hooks/useApi";
+import {
+  fmtDuracao,
+  fmtInt,
+  fmtLocal as fmt,
+  isoLocal as iso,
+  minutosEntre,
+  paraUtc,
+} from "../lib/format";
 
 export const Route = createFileRoute("/registros")({ component: RegistrosPage });
 
 const POR_PAGINA = 10;
-
-const pad = (n: number): string => String(n).padStart(2, "0");
-
-const fmt = (v: string): string => {
-  const d = new Date(v);
-  if (isNaN(d.getTime())) return v;
-  return (
-    d.toLocaleDateString("pt-BR") +
-    " " +
-    d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
-  );
-};
-
-const iso = (v: string): string => {
-  const d = new Date(v);
-  return (
-    `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` +
-    `T${pad(d.getHours())}:${pad(d.getMinutes())}`
-  );
-};
-
-const fmtDuracao = (min: number): string => {
-  const m = Math.max(0, Math.round(min));
-  const h = Math.floor(m / 60);
-  const r = m % 60;
-  if (h === 0) return `${r}min`;
-  if (r === 0) return `${h}h`;
-  return `${h}h${String(r).padStart(2, "0")}min`;
-};
-
-const fmtDec = (n: number): string =>
-  n.toLocaleString("pt-BR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-
-const fmtInt = (n: number): string => n.toLocaleString("pt-BR");
-
-const minutosEntre = (a: string, b: string): number =>
-  Math.max(
-    0,
-    Math.round((new Date(b).getTime() - new Date(a).getTime()) / 60000),
-  );
 
 const paginasLidas = (r: LeituraRegistro): number | null =>
   r.numero_2 >= r.numero_1 ? r.numero_2 - r.numero_1 + 1 : null;
@@ -74,72 +39,18 @@ const paginasLidas = (r: LeituraRegistro): number | null =>
 const badgeSync = (s: number | null | undefined): ReactNode => {
   if (s === 1)
     return (
-      <span className="badge bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400">
+      <span className="badge bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400">
         ✓ Sincronizado
       </span>
     );
   if (s === 2)
-    return (
-      <span className="badge bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300">
-        Pulada
-      </span>
-    );
+    return <span className="badge bg-papel-3 text-tinta-3">Pulada</span>;
   return (
-    <span className="badge bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400">
+    <span className="badge bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400">
       Em espera
     </span>
   );
 };
-
-function StatCard({ valor, rotulo }: { valor: string; rotulo: string }) {
-  return (
-    <div className="card p-4">
-      <div className="text-2xl font-semibold tracking-tight">{valor}</div>
-      <div className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-        {rotulo}
-      </div>
-    </div>
-  );
-}
-
-interface SerieItem {
-  rotulo: string;
-  valor: number;
-  extra: string;
-}
-
-function SerieComBarras({ itens }: { itens: SerieItem[] }) {
-  const max = Math.max(1, ...itens.map((i) => i.valor));
-  if (itens.length === 0) {
-    return (
-      <div className="px-4 py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
-        Sem dados para o recorte atual.
-      </div>
-    );
-  }
-  return (
-    <div className="space-y-3 p-4">
-      {itens.map((i) => (
-        <div key={i.rotulo}>
-          <div className="flex items-baseline justify-between gap-2 text-xs">
-            <span className="truncate font-medium text-neutral-600 dark:text-neutral-300">
-              {i.rotulo}
-            </span>
-            <span className="shrink-0 text-neutral-500 dark:text-neutral-400">
-              {i.extra}
-            </span>
-          </div>
-          <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800">
-            <div
-              className="h-full rounded-full bg-neutral-800 dark:bg-neutral-200"
-              style={{ width: `${Math.max(2, (i.valor / max) * 100)}%` }}
-            />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 type SortKey =
   | "id"
@@ -152,30 +63,6 @@ type SortKey =
   | "numero_3";
 
 type Ordem = { chave: SortKey; dir: 1 | -1 };
-
-const comparar = (a: LeituraRegistro, b: LeituraRegistro, chave: SortKey): number => {
-  switch (chave) {
-    case "id":
-      return a.id - b.id;
-    case "titulo":
-      return (a.titulo ?? "").localeCompare(b.titulo ?? "", "pt-BR");
-    case "data_hora_1":
-      return a.data_hora_1.localeCompare(b.data_hora_1);
-    case "data_hora_2":
-      return a.data_hora_2.localeCompare(b.data_hora_2);
-    case "duracao":
-      return (
-        minutosEntre(a.data_hora_1, a.data_hora_2) -
-        minutosEntre(b.data_hora_1, b.data_hora_2)
-      );
-    case "numero_1":
-      return a.numero_1 - b.numero_1;
-    case "numero_2":
-      return a.numero_2 - b.numero_2;
-    case "numero_3":
-      return a.numero_3 - b.numero_3;
-  }
-};
 
 function ThOrdenavel({
   rotulo,
@@ -193,19 +80,186 @@ function ThOrdenavel({
   const ativa = ordem.chave === chave;
   return (
     <th
-      aria-sort={
-        ativa ? (ordem.dir === 1 ? "ascending" : "descending") : "none"
-      }
+      aria-sort={ativa ? (ordem.dir === 1 ? "ascending" : "descending") : "none"}
       className={
-        "border-b border-neutral-200 dark:border-neutral-800 px-3 py-2.5 text-xs font-medium uppercase tracking-wide text-neutral-500 dark:text-neutral-400 cursor-pointer select-none transition-colors hover:text-neutral-900 dark:hover:text-neutral-100 " +
+        "cursor-pointer select-none border-b border-linha px-3 py-2.5 font-mono text-xs uppercase tracking-wide text-tinta-3 transition-colors hover:text-tinta " +
         (direita ? "text-right" : "text-left")
       }
       onClick={() => aoOrdenar(chave)}
       title={"Ordenar por " + rotulo}
     >
       {rotulo}
-      <span className="ml-1 text-[10px]">{ativa ? (ordem.dir === 1 ? "▲" : "▼") : ""}</span>
+      <span className="ml-1 text-[10px]">
+        {ativa ? (ordem.dir === 1 ? "▲" : "▼") : ""}
+      </span>
     </th>
+  );
+}
+
+function DetalhesSessao({ registro }: { registro: LeituraRegistro }) {
+  const [aberto, setAberto] = useState(false);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+  const botaoRef = useRef<HTMLButtonElement>(null);
+  const painelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!aberto) return;
+    const fechar = (): void => setAberto(false);
+    const aoClicar = (e: MouseEvent): void => {
+      const alvo = e.target as Node;
+      if (botaoRef.current?.contains(alvo) || painelRef.current?.contains(alvo)) {
+        return;
+      }
+      setAberto(false);
+    };
+    const aoTeclar = (e: KeyboardEvent): void => {
+      if (e.key === "Escape") setAberto(false);
+    };
+    document.addEventListener("mousedown", aoClicar);
+    document.addEventListener("keydown", aoTeclar);
+    window.addEventListener("resize", fechar);
+    window.addEventListener("scroll", fechar, true);
+    return () => {
+      document.removeEventListener("mousedown", aoClicar);
+      document.removeEventListener("keydown", aoTeclar);
+      window.removeEventListener("resize", fechar);
+      window.removeEventListener("scroll", fechar, true);
+    };
+  }, [aberto]);
+
+  const alternar = (): void => {
+    if (!aberto) {
+      const r = botaoRef.current?.getBoundingClientRect();
+      if (r) {
+        const largura = Math.min(264, window.innerWidth - 16);
+        const margem = 8;
+        const left = Math.max(
+          margem,
+          Math.min(r.right - largura, window.innerWidth - largura - margem),
+        );
+        const altura = 280;
+        const abaixo = window.innerHeight - r.bottom;
+        const top =
+          abaixo < altura + 16
+            ? Math.max(margem, r.top - altura - 6)
+            : r.bottom + 6;
+        setPos({ top, left });
+      }
+    }
+    setAberto((a) => !a);
+  };
+
+  const paginas = paginasLidas(registro);
+  const minutos = minutosEntre(registro.data_hora_1, registro.data_hora_2);
+  const velocidade =
+    paginas !== null && minutos > 0
+      ? (paginas / minutos).toLocaleString("pt-BR", {
+          maximumFractionDigits: 1,
+        }) + " p/min"
+      : "—";
+
+  const linhas: [string, ReactNode][] = [
+    ["ID", registro.id],
+    ["Início", fmt(registro.data_hora_1)],
+    ["Fim", fmt(registro.data_hora_2)],
+    ["Duração", fmtDuracao(minutos)],
+    ["Velocidade", velocidade],
+    [
+      "Páginas",
+      `${registro.numero_1} → ${registro.numero_2} de ${registro.numero_3}`,
+    ],
+    ["Páginas lidas", paginas ?? "—"],
+    ["Origem", registro.origem || "—"],
+    ["Atualizado", registro.updated_at ? fmt(registro.updated_at) : "—"],
+  ];
+
+  return (
+    <>
+      <button
+        ref={botaoRef}
+        type="button"
+        className="btn-icone"
+        title="Detalhes da sessão"
+        aria-label="Detalhes da sessão"
+        aria-expanded={aberto}
+        onClick={alternar}
+      >
+        <ChevronDown className="h-4 w-4" />
+      </button>
+      {aberto
+        ? createPortal(
+            <div
+              ref={painelRef}
+              role="dialog"
+              aria-label="Detalhes da sessão"
+              style={{ top: pos.top, left: pos.left }}
+              className="fixed z-50 max-h-[70dvh] w-[min(264px,calc(100vw-1rem))] overflow-y-auto rounded-lg border border-linha-2 bg-papel-2 p-3 text-sm shadow-[0_10px_30px_rgb(0_0_0/0.2)]"
+            >
+              <p className="mb-2 font-mono text-xs uppercase tracking-wide text-tinta-3">
+                Detalhes da sessão
+              </p>
+              <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5">
+                {linhas.map(([rotulo, valor]) => (
+                  <Fragment key={rotulo}>
+                    <dt className="text-tinta-3">{rotulo}</dt>
+                    <dd className="text-right tabular-nums text-tinta">
+                      {valor}
+                    </dd>
+                  </Fragment>
+                ))}
+              </dl>
+            </div>,
+            document.body,
+          )
+        : null}
+    </>
+  );
+}
+
+function AcoesRegistro({
+  r,
+  aoEditar,
+  aoExcluir,
+  aoEspera,
+}: {
+  r: LeituraRegistro;
+  aoEditar: (r: LeituraRegistro) => void;
+  aoExcluir: (id: number) => void;
+  aoEspera: (id: number) => void;
+}) {
+  return (
+    <div className="flex items-center justify-end gap-1">
+      {r.leitura_sincronizada === 1 ? (
+        <button
+          type="button"
+          className="btn-icone"
+          title="Voltar para Em espera"
+          aria-label="Voltar para Em espera"
+          onClick={() => aoEspera(r.id)}
+        >
+          <RotateCcw className="h-4 w-4" />
+        </button>
+      ) : null}
+      <button
+        type="button"
+        className="btn-icone"
+        title="Editar registro"
+        aria-label="Editar registro"
+        onClick={() => aoEditar(r)}
+      >
+        <Pencil className="h-4 w-4" />
+      </button>
+      <button
+        type="button"
+        className="btn-icone"
+        title="Excluir registro"
+        aria-label="Excluir registro"
+        onClick={() => aoExcluir(r.id)}
+      >
+        <Trash2 className="h-4 w-4" />
+      </button>
+      <DetalhesSessao registro={r} />
+    </div>
   );
 }
 
@@ -225,10 +279,6 @@ function RegistrosPage() {
     fim: "",
   });
   const [pagina, setPagina] = useState(1);
-  const [registros, setRegistros] = useState<LeituraRegistro[]>([]);
-  const [total, setTotal] = useState(0);
-  const [totalPaginas, setTotalPaginas] = useState(1);
-  const [stats, setStats] = useState<StatsResponse | null>(null);
   const [editando, setEditando] = useState<LeituraRegistro | null>(null);
   const [ordem, setOrdem] = useState<Ordem>({ chave: "id", dir: -1 });
 
@@ -237,37 +287,32 @@ function RegistrosPage() {
     if (incluirPagina) {
       params.limit = String(POR_PAGINA);
       params.page = String(pagina);
+      params.sort = ordem.chave;
+      params.dir = ordem.dir === 1 ? "asc" : "desc";
     }
     if (filtros.livro) params.md5 = filtros.livro;
     if (filtros.sync !== "") params.sincronizada = filtros.sync;
-    if (filtros.inicio) params.data_inicio = filtros.inicio + "T00:00";
-    if (filtros.fim) params.data_fim = filtros.fim + "T23:59";
+    if (filtros.inicio) params.data_inicio = paraUtc(filtros.inicio + "T00:00");
+    if (filtros.fim) params.data_fim = paraUtc(filtros.fim + "T23:59:00");
     return new URLSearchParams(params);
   };
 
-  const carregar = useCallback(async (): Promise<void> => {
+  const carrega = useCallback(async () => {
     const data = await apiListaLeitura(queryFiltros(true));
-    setRegistros(data.registros ?? []);
-    setTotal(data.total);
-    setTotalPaginas(Math.max(1, Math.ceil(data.total / POR_PAGINA)));
-    setStats(await apiStats());
-  }, [filtros, pagina]);
+    return { registros: data.registros ?? [], total: data.total };
+  }, [filtros, pagina, ordem]);
+
+  const lista = useApi(carrega, [carrega]);
+  const opcoesLivros = useApi(apiGetOpcoes);
+  const { recarregar } = lista;
 
   useEffect(() => {
-    apiGetOpcoes()
-      .then((data) => setLivros(data.livros ?? []))
-      .catch(() => setLivros([]));
-  }, []);
+    if (opcoesLivros.dados) setLivros(opcoesLivros.dados.livros ?? []);
+  }, [opcoesLivros.dados]);
 
-  useEffect(() => {
-    carregar().catch(() => setRegistros([]));
-  }, [carregar]);
-
-  const registrosOrdenados = useMemo(() => {
-    const arr = [...registros];
-    arr.sort((a, b) => ordem.dir * comparar(a, b, ordem.chave));
-    return arr;
-  }, [registros, ordem]);
+  const registros = lista.dados?.registros ?? [];
+  const total = lista.dados?.total ?? 0;
+  const totalPaginas = Math.max(1, Math.ceil(total / POR_PAGINA));
 
   const mudarFiltro = (patch: Partial<Filtros>): void => {
     setFiltros((f) => ({ ...f, ...patch }));
@@ -309,71 +354,55 @@ function RegistrosPage() {
     const res = await apiPatchLeitura(editando.id, {
       md5,
       titulo: livroObj ? livroObj.titulo : undefined,
-      data_hora_1: val("edit-dt1"),
-      data_hora_2: val("edit-dt2"),
+      data_hora_1: paraUtc(val("edit-dt1")),
+      data_hora_2: paraUtc(val("edit-dt2")),
       numero_1: parseInt(val("edit-num-1"), 10),
       numero_2: parseInt(val("edit-num-2"), 10),
       numero_3: parseInt(val("edit-num-3"), 10),
     });
     fecharEditar();
-    if (res.ok) await carregar();
+    if (res.ok) recarregar();
     else alert("Erro: " + res.error);
   };
 
   const excluir = async (id: number): Promise<void> => {
     if (!confirm("Excluir registro " + id + "?")) return;
     const data = await apiDeleteLeitura(id);
-    if (data.ok) await carregar();
+    if (data.ok) recarregar();
     else alert("Erro: " + data.error);
   };
 
-  const porLivro: SerieItem[] = (stats?.por_tipo ?? [])
-    .filter((t) => typeof t.tipo === "string" && t.tipo)
-    .map((t) => ({
-      rotulo: t.tipo as string,
-      valor: t.n,
-      extra: fmtDuracao(t.horas * 60) + " · " + t.n + " leitura" + (t.n === 1 ? "" : "s"),
-    }));
-
-  const porDia: SerieItem[] = (stats?.por_dia ?? []).map((d) => ({
-    rotulo: d.dia.slice(8, 10) + "/" + d.dia.slice(5, 7) + "/" + d.dia.slice(0, 4),
-    valor: d.n,
-    extra: d.n + " · " + fmtDuracao(d.horas * 60),
-  }));
-
-  const porMes: SerieItem[] = (stats?.por_mes ?? []).map((m) => ({
-    rotulo: m.mes,
-    valor: m.n,
-    extra: m.n + " · " + fmtDuracao(m.horas * 60),
-  }));
+  const marcarEmEspera = async (id: number): Promise<void> => {
+    const data = await apiPatchLeitura(id, { leitura_sincronizada: 0 });
+    if (data.ok) recarregar();
+    else alert("Erro: " + data.error);
+  };
 
   const filtrosAtivos =
-    filtros.livro !== "" || filtros.sync !== "" || filtros.inicio !== "" || filtros.fim !== "";
+    filtros.livro !== "" ||
+    filtros.sync !== "" ||
+    filtros.inicio !== "" ||
+    filtros.fim !== "";
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Registros de leitura
-        </h1>
-        <div className="flex items-center gap-4 text-sm">
-          <Link
-            to="/config"
-            className="text-neutral-500 dark:text-neutral-400 underline-offset-4 hover:text-neutral-900 dark:hover:text-neutral-50 hover:underline"
-          >
-            Configurar
-          </Link>
-          <Link
-            to="/"
-            className="text-neutral-500 dark:text-neutral-400 underline-offset-4 hover:text-neutral-900 dark:hover:text-neutral-50 hover:underline"
-          >
-            ← Estante
-          </Link>
+    <div>
+      <header className="mb-7">
+        <span className="eyebrow">Registros</span>
+        <h1 className="titulo-pag">Histórico de leitura</h1>
+        <p className="mt-1 text-sm text-tinta-2">
+          Tabela completa, filtrável e exportável.
+        </p>
+      </header>
+
+      {lista.carregando ? (
+        <div className="card mb-6 p-8 text-center text-sm text-tinta-2">
+          Carregando…
         </div>
-      </div>
+      ) : null}
+      {lista.erro ? <BannerErro texto={lista.erro} aoTentar={recarregar} /> : null}
 
       <div className="card mb-6 p-4">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <label htmlFor="f-livro" className="label">
               Livro
@@ -432,14 +461,18 @@ function RegistrosPage() {
               onChange={(e) => mudarFiltro({ fim: e.target.value })}
             />
           </div>
-          <div className="flex items-end gap-2">
+        </div>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-linha pt-4">
+          <p className="text-sm text-tinta-3">
+            {filtrosAtivos
+              ? "Filtros aplicados — os registros abaixo já refletem a seleção."
+              : "Sem filtros — mostrando todos os registros."}
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
-              className="btn btn-primary"
-              onClick={() => {
-                setPagina(1);
-                carregar();
-              }}
+              className="btn btn-primario"
+              onClick={() => setPagina(1)}
             >
               Filtrar
             </button>
@@ -449,7 +482,7 @@ function RegistrosPage() {
             {filtrosAtivos ? (
               <button
                 type="button"
-                className="btn btn-ghost"
+                className="btn btn-suave"
                 onClick={limparFiltros}
               >
                 Limpar
@@ -459,66 +492,10 @@ function RegistrosPage() {
         </div>
       </div>
 
-      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatCard
-          valor={fmtInt(stats?.total ?? 0)}
-          rotulo="Total de leituras"
-        />
-        <StatCard
-          valor={fmtDuracao((stats?.duracao_total_horas ?? 0) * 60)}
-          rotulo="Tempo total"
-        />
-        <StatCard
-          valor={fmtDuracao((stats?.duracao_media_horas ?? 0) * 60)}
-          rotulo="Duração média"
-        />
-        <StatCard
-          valor={fmtInt(stats?.paginas_lidas ?? 0)}
-          rotulo="Páginas lidas"
-        />
-        <StatCard
-          valor={fmtDec(stats?.media_num1 ?? 0)}
-          rotulo="Média pág. inicial"
-        />
-        <StatCard
-          valor={fmtDec(stats?.media_num2 ?? 0)}
-          rotulo="Média pág. final"
-        />
-        <StatCard valor={stats?.primeira_data ? fmt(stats.primeira_data) : "—"} rotulo="Primeira" />
-        <StatCard valor={stats?.ultima_data ? fmt(stats.ultima_data) : "—"} rotulo="Última" />
-      </div>
-
-      <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="card">
-          <div className="border-b border-neutral-200 dark:border-neutral-800 px-4 py-3">
-            <h3 className="text-sm font-semibold">Por livro</h3>
-          </div>
-          <SerieComBarras itens={porLivro} />
-        </div>
-        <div className="card">
-          <div className="border-b border-neutral-200 dark:border-neutral-800 px-4 py-3">
-            <h3 className="text-sm font-semibold">Por dia</h3>
-          </div>
-          <SerieComBarras itens={porDia} />
-        </div>
-        <div className="card">
-          <div className="border-b border-neutral-200 dark:border-neutral-800 px-4 py-3">
-            <h3 className="text-sm font-semibold">Por mês</h3>
-          </div>
-          <SerieComBarras itens={porMes} />
-        </div>
-      </div>
-
-      <div className="card overflow-x-auto">
+      <div className="card hidden overflow-x-auto md:block">
         <table className="w-full text-sm">
           <thead>
             <tr>
-              <ThOrdenavel
-                rotulo="ID"
-                chave="id"
-                ordem={ordem}
-                aoOrdenar={ordenar}
-              />
               <ThOrdenavel
                 rotulo="Livro"
                 chave="titulo"
@@ -532,90 +509,82 @@ function RegistrosPage() {
                 aoOrdenar={ordenar}
               />
               <ThOrdenavel
-                rotulo="Fim"
-                chave="data_hora_2"
-                ordem={ordem}
-                aoOrdenar={ordenar}
-              />
-              <ThOrdenavel
-                rotulo="Dur."
+                rotulo="Duração"
                 chave="duracao"
                 ordem={ordem}
                 aoOrdenar={ordenar}
                 direita
               />
-              <ThOrdenavel
-                rotulo="P. ini"
-                chave="numero_1"
-                ordem={ordem}
-                aoOrdenar={ordenar}
-                direita
-              />
-              <ThOrdenavel
-                rotulo="P. fim"
-                chave="numero_2"
-                ordem={ordem}
-                aoOrdenar={ordenar}
-                direita
-              />
-              <ThOrdenavel
-                rotulo="Tot."
-                chave="numero_3"
-                ordem={ordem}
-                aoOrdenar={ordenar}
-                direita
-              />
-              <th className="th text-right">Págs.</th>
-              <th className="th">KOReader</th>
+              <th className="th">Status</th>
               <th className="th text-right">Ações</th>
             </tr>
           </thead>
           <tbody>
-            {registrosOrdenados.map((r) => (
-              <tr
-                key={r.id}
-                className="transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/40"
-              >
-                <td className="td">{r.id}</td>
-                <td className="td max-w-[14rem] truncate">{r.titulo || "—"}</td>
+            {registros.map((r) => (
+              <tr key={r.id} className="transition-colors hover:bg-papel">
+                <td className="td max-w-[16rem] truncate">{r.titulo || "—"}</td>
                 <td className="td whitespace-nowrap">{fmt(r.data_hora_1)}</td>
-                <td className="td whitespace-nowrap">{fmt(r.data_hora_2)}</td>
                 <td className="td whitespace-nowrap text-right tabular-nums">
                   {fmtDuracao(minutosEntre(r.data_hora_1, r.data_hora_2))}
                 </td>
-                <td className="td text-right tabular-nums">{r.numero_1}</td>
-                <td className="td text-right tabular-nums">{r.numero_2}</td>
-                <td className="td text-right tabular-nums">{r.numero_3}</td>
-                <td className="td text-right tabular-nums">
-                  {paginasLidas(r) ?? "—"}
-                </td>
-                <td className="td whitespace-nowrap text-center">
+                <td className="td whitespace-nowrap">
                   {badgeSync(r.leitura_sincronizada)}
                 </td>
-                <td className="td whitespace-nowrap text-right">
-                  <button
-                    type="button"
-                    className="btn btn-outline h-8 px-2.5 mr-1"
-                    onClick={() => setEditando(r)}
-                  >
-                    Editar
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-outline h-8 px-2.5"
-                    onClick={() => excluir(r.id)}
-                  >
-                    Excluir
-                  </button>
+                <td className="td whitespace-nowrap">
+                  <AcoesRegistro
+                    r={r}
+                    aoEditar={setEditando}
+                    aoExcluir={excluir}
+                    aoEspera={marcarEmEspera}
+                  />
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        {registrosOrdenados.length === 0 && (
-          <div className="px-4 py-10 text-center text-sm font-medium text-neutral-500 dark:text-neutral-400">
+        {registros.length === 0 && (
+          <div className="px-4 py-10 text-center text-sm font-medium text-tinta-2">
             Nenhum registro encontrado.
           </div>
+        )}
+      </div>
+
+      <div className="md:hidden">
+        {registros.length === 0 ? (
+          <div className="card px-4 py-10 text-center text-sm font-medium text-tinta-2">
+            Nenhum registro encontrado.
+          </div>
+        ) : (
+          <ul className="space-y-3">
+            {registros.map((r) => (
+              <li key={r.id} className="card p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-tinta">
+                      {r.titulo || "—"}
+                    </p>
+                    <p className="mt-0.5 text-xs text-tinta-3">
+                      {fmt(r.data_hora_1)}
+                    </p>
+                  </div>
+                  <span className="shrink-0">
+                    {badgeSync(r.leitura_sincronizada)}
+                  </span>
+                </div>
+                <div className="mt-3 flex items-center justify-between gap-3 border-t border-linha pt-3">
+                  <span className="font-mono text-xs text-tinta-2">
+                    {fmtDuracao(minutosEntre(r.data_hora_1, r.data_hora_2))}
+                  </span>
+                  <AcoesRegistro
+                    r={r}
+                    aoEditar={setEditando}
+                    aoExcluir={excluir}
+                    aoEspera={marcarEmEspera}
+                  />
+                </div>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
 
@@ -628,7 +597,7 @@ function RegistrosPage() {
         >
           ‹ Anterior
         </button>
-        <span className="text-sm text-neutral-600 dark:text-neutral-400">
+        <span className="text-sm text-tinta-2">
           Página {pagina} de {totalPaginas} ({fmtInt(total)} registros)
         </span>
         <button
@@ -646,11 +615,11 @@ function RegistrosPage() {
         onClose={fecharEditar}
         title={<span>Editar registro #{editando?.id ?? ""}</span>}
         footer={
-          <div className="flex justify-end gap-2 border-t border-neutral-200 dark:border-neutral-800 px-4 py-3">
+          <div className="flex justify-end gap-2 border-t border-linha px-4 py-3">
             <button type="button" className="btn btn-outline" onClick={fecharEditar}>
               Cancelar
             </button>
-            <button type="button" className="btn btn-primary" onClick={salvarEdicao}>
+            <button type="button" className="btn btn-primario" onClick={salvarEdicao}>
               Salvar
             </button>
           </div>
@@ -659,7 +628,11 @@ function RegistrosPage() {
         {editando && (
           <div key={editando.id}>
             <label className="label mt-3">Livro</label>
-            <select id="edit-md5" className="select w-full" defaultValue={editando.md5 ?? ""}>
+            <select
+              id="edit-md5"
+              className="select w-full"
+              defaultValue={editando.md5 ?? ""}
+            >
               {livros.map((li) => (
                 <option key={li.id} value={li.md5 ?? ""}>
                   {li.titulo}

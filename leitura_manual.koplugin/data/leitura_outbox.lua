@@ -5,7 +5,7 @@ local UIManager = require("ui/uimanager")
 local logger = require("logger")
 local rapidjson = require("rapidjson")
 
-local LeituraApi = require("leitura_api")
+local LeituraApi = require("api/leitura_api")
 
 local OUTBOX_DB_PATH = DataStorage:getSettingsDir() .. "/leitura_outbox.sqlite3"
 

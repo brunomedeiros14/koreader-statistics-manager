@@ -2,6 +2,7 @@ import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { routeTree } from "./routeTree.gen";
 import "./index.css";
 
@@ -17,7 +18,9 @@ const root = document.getElementById("root");
 if (root) {
   createRoot(root).render(
     <StrictMode>
-      <RouterProvider router={router} />
+      <ErrorBoundary>
+        <RouterProvider router={router} />
+      </ErrorBoundary>
     </StrictMode>,
   );
 }

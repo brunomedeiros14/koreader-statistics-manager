@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trilha do Leitor — Mapa da trilha</title>
+  <link rel="stylesheet" href="estilo.css" />
+</head>
+<body>
+  <header class="cabecalho">
+    <div class="container linha">
+      <span class="marca"><span class="bandeira"></span>Trilha do Leitor</span>
+      <nav class="links">
+        <a href="mapa.html" class="ativo">Mapa</a>
+        <a href="trecho.html">Trecho</a>
+        <a href="diario.html">Diário de bordo</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="rolo" style="padding: 20px 24px;">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px;">
+        <div>
+          <p class="eyebrow">Expedição da semana</p>
+          <h1 class="titulo" style="font-size: 1.5rem;">Você está no meio do Fogo de Chão</h1>
+          <p class="sub">Bandeira fincada na página 132 · meta do trecho: marco dos 150</p>
+        </div>
+        <a class="btn btn-primario" href="trecho.html" style="text-decoration: none;">Continuar o trecho</a>
+      </div>
+
+      <svg class="mapa-svg" viewBox="0 0 820 300" role="img" aria-label="Trilha de leitura sinuosa com a bandeira atual em Fogo de Chão, página 132">
+        <defs>
+          <pattern id="terra" width="14" height="14" patternUnits="userSpaceOnUse">
+            <path d="M7 0 L14 7 L7 14 L0 7 Z" fill="rgba(138,109,59,0.10)" />
+          </pattern>
+        </defs>
+        <rect width="820" height="300" rx="12" fill="url(#terra)" />
+        <circle cx="90" cy="60" r="70" fill="none" stroke="rgba(91,108,68,0.22)" stroke-width="1.5" />
+        <circle cx="120" cy="110" r="46" fill="none" stroke="rgba(91,108,68,0.20)" stroke-width="1.5" />
+        <circle cx="720" cy="230" r="80" fill="none" stroke="rgba(91,108,68,0.20)" stroke-width="1.5" />
+        <path d="M40 252 C 190 250, 210 96, 360 100 S 520 258, 680 244" fill="none"
+              stroke="#5b6c44" stroke-width="3" stroke-dasharray="10 8" stroke-linecap="round" />
+        <path d="M40 252 C 190 250, 210 96, 360 100 S 520 258, 680 244" fill="none"
+              stroke="#f7f0df" stroke-width="16" stroke-linecap="round" opacity="0.14" />
+        <circle cx="60" cy="249" r="6" fill="#f3eddd" stroke="#465635" stroke-width="2" />
+        <circle cx="310" cy="102" r="6" fill="#f3eddd" stroke="#465635" stroke-width="2" />
+        <circle cx="390" cy="178" r="6" fill="#f3eddd" stroke="#c2543c" stroke-width="2" />
+        <line x1="390" y1="178" x2="398" y2="150" stroke="#c2543c" stroke-width="2" />
+        <path d="M398 138 L 414 150 L 398 162 Z" fill="#c2543c" />
+        <circle cx="620" cy="242" r="6" fill="#f3eddd" stroke="#465635" stroke-width="2" />
+        <text x="66" y="245" font-family="ui-monospace, monospace" font-size="11" fill="#6d6350">agora há 9 dias</text>
+        <text x="392" y="132" font-family="ui-monospace, monospace" font-size="12" font-weight="700" fill="#93382a">pág 132</text>
+        <text x="560" y="240" font-family="ui-monospace, monospace" font-size="11" fill="#6d6350">próximo: pág 320</text>
+      </svg>
+
+      <div class="legenda">
+        <span><span class="circulo" style="background:#5b6c44;"></span>trilha percorrida</span>
+        <span><span class="linhatraco"></span>trechos de cada livro</span>
+        <span><span class="circulo" style="background:#c2543c;"></span>bandeira atual</span>
+        <span class="mono">légua = 40 páginas</span>
+      </div>
+    </section>
+
+    <section style="margin-top: 26px;">
+      <h2 class="titulo" style="font-size: 1.05rem; margin-bottom: 12px;">Trechos na mochila</h2>
+      <div class="trechos">
+        <article class="trecho ativo">
+          <h3>Fogo de Chão</h3>
+          <p>páginas 1 → 320 · bandeira na 132</p>
+          <p class="mono">3 léguas e 12 passos</p>
+        </article>
+        <article class="trecho">
+          <h3>Água Viva</h3>
+          <p>páginas 1 → 41 · pausado na terça</p>
+          <p class="mono">1 légua e 1 passo</p>
+        </article>
+        <article class="trecho">
+          <h3>Cartas a um Jovem Poeta</h3>
+          <p>páginas 18 → 24 · pausado na terça</p>
+          <p class="mono">12 passos</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="rodape-fino">
+    <div class="container">
+      <a href="diario.html">abrir o diário de bordo</a> · cada página virada vira um passo na trilha
+    </div>
+  </footer>
+</body>
+</html>

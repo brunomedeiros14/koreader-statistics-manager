@@ -9,6 +9,14 @@ apps/web      @leitura/web      Frontend React (Vite + TanStack Router + Tailwin
 libs/common   @leitura/common   Tipos e validações compartilhados
 ```
 
+## Documentação
+
+- [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md) — visão geral do sistema e componentes
+- [`docs/SCHEMAS.md`](docs/SCHEMAS.md) — bancos SQLite, localStorage e payloads
+- [`docs/FLUXOS.md`](docs/FLUXOS.md) — fluxos de dados (web, plugin, sync de estatísticas)
+- [`docs/API.md`](docs/API.md) — referência das rotas HTTP
+- [`docs/PLANO_DE_MELHORIAS.md`](docs/PLANO_DE_MELHORIAS.md) — plano de melhorias por prioridade
+
 ## Instalando
 
 ```bash

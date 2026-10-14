@@ -1,0 +1,459 @@
+:root {
+  --parede: #f2e6d5;
+  --parede-2: #e7d6bf;
+  --parede-3: #d9c4a6;
+  --madeira: #8a5a38;
+  --madeira-2: #5f3c22;
+  --couro: #6b4226;
+  --tinta: #3e2f22;
+  --tinta-2: #7a6248;
+  --linha: rgba(62, 47, 34, 0.16);
+  --ambar: #e8a33d;
+  --ambar-suave: #ffd9a0;
+  --verde: #4f6b3f;
+  --verde-2: #3a5230;
+  --janela-dia: linear-gradient(180deg, #a8cbe0 0%, #d9e8ee 55%, #b99b6d 56%, #cfae7c 100%);
+  --janela-noite: linear-gradient(180deg, #1d2c44 0%, #31405e 55%, #241b12 56%, #3a2a18 100%);
+  --serif: Georgia, "Palatino Linotype", "Noto Serif", ui-serif, serif;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--parede);
+  color: var(--tinta);
+  font-family: var(--serif);
+  line-height: 1.6;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+}
+
+.container {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+header.cabecalho {
+  padding: 20px 0;
+  border-bottom: 1px solid var(--linha);
+  margin-bottom: 26px;
+}
+
+.cabecalho .linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.marca {
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.04em;
+}
+
+.marca::before {
+  content: "●";
+  color: var(--ambar);
+  margin-right: 8px;
+  font-size: 0.8rem;
+  vertical-align: middle;
+}
+
+nav.links a {
+  margin-left: 18px;
+  font-size: 0.92rem;
+  color: var(--tinta-2);
+  text-decoration: underline;
+  text-decoration-color: var(--linha);
+  text-underline-offset: 4px;
+}
+
+nav.links a:hover,
+nav.links a.ativo {
+  color: var(--tinta);
+  text-decoration-color: var(--ambar);
+}
+
+.eyebrow {
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--tinta-2);
+  margin: 0;
+}
+
+.titulo {
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.sub {
+  color: var(--tinta-2);
+  font-size: 0.95rem;
+}
+
+.fina {
+  color: var(--tinta-2);
+  font-size: 0.82rem;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 18px;
+  border-radius: 7px;
+  font-size: 0.92rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+  font-family: var(--serif);
+  box-shadow: 0 2px 8px rgba(62, 47, 34, 0.1);
+}
+
+.btn-primario {
+  background: var(--madeira);
+  color: #f7efdf;
+}
+
+.btn-primario:hover {
+  background: var(--madeira-2);
+}
+
+.btn-linha {
+  background: transparent;
+  color: var(--tinta-2);
+  border-color: var(--linha);
+}
+
+.btn-linha:hover {
+  color: var(--tinta);
+}
+
+.corpo-sala {
+  position: relative;
+  border: 1px solid var(--linha);
+  border-radius: 14px;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, var(--parede) 0%, var(--parede-2) 58%, var(--madeira) 58.3%, #5f3c22 100%);
+  box-shadow: 0 14px 34px rgba(62, 47, 34, 0.16);
+  min-height: 380px;
+}
+
+.janela {
+  position: absolute;
+  top: 26px;
+  left: 26px;
+  width: 170px;
+  height: 210px;
+  border: 10px solid var(--madeira-2);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 4px var(--madeira);
+}
+
+.janela .ceu {
+  width: 100%;
+  height: 100%;
+  background: var(--janela-dia);
+}
+
+.janela .sol {
+  position: absolute;
+  top: 22px;
+  right: 26px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--ambar-suave);
+  box-shadow: 0 0 26px 6px rgba(255, 217, 160, 0.8);
+}
+
+.luminaria {
+  position: absolute;
+  top: 24px;
+  right: 40px;
+}
+
+.luminaria .base {
+  width: 120px;
+  height: 14px;
+  background: var(--madeira-2);
+  border-radius: 4px 4px 0 0;
+  margin: 0 auto;
+}
+
+.luminaria .corda {
+  width: 2px;
+  height: 46px;
+  background: var(--madeira-2);
+  margin: 0 auto;
+}
+
+.luminaria .lamp {
+  width: 56px;
+  height: 20px;
+  margin: 0 auto;
+  border-radius: 50% 50% 6px 6px;
+  background: var(--ambar);
+  box-shadow: 0 0 34px 14px rgba(232, 163, 61, 0.55), 0 0 90px 40px rgba(232, 163, 61, 0.22);
+}
+
+.estante {
+  position: absolute;
+  right: 22px;
+  bottom: 58px;
+  width: 210px;
+}
+
+.estante .tábua {
+  height: 9px;
+  border-radius: 3px;
+  background: var(--madeira);
+  box-shadow: 0 4px 8px rgba(62, 47, 34, 0.25);
+  margin-bottom: 8px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  padding: 0 8px;
+}
+
+.mini-capa {
+  width: 34px;
+  aspect-ratio: 2 / 3;
+  border-radius: 3px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 3px 7px rgba(62, 47, 34, 0.35);
+}
+
+.mini-capa .fita {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(180deg, var(--ambar), var(--madeira));
+  opacity: 0.85;
+}
+
+.planta {
+  position: absolute;
+  bottom: 0;
+  left: 34px;
+  width: 130px;
+  height: 130px;
+}
+
+.planta .vaso {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 56px;
+  height: 40px;
+  border-radius: 4px 4px 12px 12px;
+  background: linear-gradient(180deg, #9c6b3c, #6b4226);
+}
+
+.planta .folha {
+  position: absolute;
+  bottom: 36px;
+  left: 50%;
+  width: 30px;
+  height: 54px;
+  border-radius: 60% 0 60% 60%;
+  background: linear-gradient(180deg, var(--verde), var(--verde-2));
+  transform-origin: bottom center;
+}
+
+.planta .folha:nth-child(1) { transform: translateX(-34px) rotate(-32deg); }
+.planta .folha:nth-child(2) { transform: translateX(-10px) rotate(-8deg); height: 66px; background: #557a44; }
+.planta .folha:nth-child(3) { transform: translateX(14px) rotate(14deg); }
+.planta .folha:nth-child(4) { transform: translateX(34px) rotate(34deg); height: 52px; }
+
+.gota {
+  position: absolute;
+  top: 96px;
+  left: 50%;
+  font-size: 0.9rem;
+}
+
+.bola {
+  position: absolute;
+  left: 220px;
+  top: 150px;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 30%, #74502f, var(--couro));
+  box-shadow: inset 12px -14px 30px rgba(0, 0, 0, 0.35), 0 16px 30px rgba(62, 47, 34, 0.3);
+}
+
+.mesa {
+  position: absolute;
+  left: 26px;
+  bottom: 58px;
+  width: 190px;
+  height: 12px;
+  border-radius: 4px;
+  background: var(--madeira-2);
+  box-shadow: 0 8px 16px rgba(62, 47, 34, 0.3);
+}
+
+.mesa::after {
+  content: "livro aberto em pausa — como toda leitura deveria ser";
+  position: absolute;
+  bottom: -30px;
+  left: 0;
+  font-size: 0.8rem;
+  color: var(--parede);
+  white-space: nowrap;
+}
+
+.aviso-sala {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  transform: translateX(-50%);
+  background: rgba(94, 60, 34, 0.85);
+  color: #f7efdf;
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-size: 0.86rem;
+  white-space: nowrap;
+  box-shadow: 0 6px 16px rgba(62, 47, 34, 0.35);
+}
+
+.abajur {
+  width: 130px;
+  margin: 20px auto 0;
+  position: relative;
+}
+
+.abajur .pé {
+  width: 2px;
+  height: 70px;
+  background: var(--madeira-2);
+  margin: 0 auto;
+}
+
+.abajur .tampa {
+  width: 96px;
+  height: 58px;
+  margin: 0 auto;
+  border-radius: 50% 50% 12px 12px / 60% 60% 12px 12px;
+  background: linear-gradient(180deg, #f4c877, var(--ambar));
+  box-shadow: 0 0 44px 18px rgba(255, 214, 140, 0.5), 0 0 120px 50px rgba(232, 163, 61, 0.18);
+}
+
+.barra {
+  height: 8px;
+  border-radius: 5px;
+  background: var(--parede-3);
+  overflow: hidden;
+}
+
+.barra i {
+  display: block;
+  height: 100%;
+  border-radius: 5px;
+  background: linear-gradient(90deg, var(--madeira), var(--ambar));
+}
+
+.timer {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 2.3rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 4px 0;
+  color: var(--madeira-2);
+}
+
+.memorial {
+  border: 1px solid var(--linha);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.noite-casa {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--linha);
+  background: var(--parede);
+}
+
+.noite-casa:last-child {
+  border-bottom: 0;
+}
+
+.noite-casa h4 {
+  margin: 0;
+  font-weight: 700;
+}
+
+.noite-casa p {
+  margin: 0;
+  color: var(--tinta-2);
+  font-size: 0.88rem;
+}
+
+.chaminé {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  min-height: 120px;
+  background: var(--parede-2);
+  border-radius: 12px;
+  border: 1px solid var(--linha);
+  padding: 14px;
+}
+
+.lenha {
+  flex: none;
+  width: 14px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, var(--madeira), var(--madeira-2));
+}
+
+.rodape-fino {
+  margin-top: 48px;
+  padding: 18px 0 30px;
+  border-top: 1px solid var(--linha);
+  color: var(--tinta-2);
+  font-size: 0.85rem;
+}
+
+.rodape-fino a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  color: var(--tinta-2);
+}
+
+@media (min-width: 640px) {
+  .lado-a-lado {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: stretch;
+  }
+}

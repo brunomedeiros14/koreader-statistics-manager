@@ -1,10 +1,7 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@leitura/common": ["../../libs/common/src/index.ts"]
-    }
+    "types": ["bun"]
   },
   "include": ["src"]
 }

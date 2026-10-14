@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Leitura Manual — Registros</title>
+  <link rel="stylesheet" href="estilo.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="side">
+      <div class="marca">
+        <div class="nome">Leitura Manual</div>
+        <div class="sub">caderno de estante</div>
+      </div>
+<nav class="mv">
+        <a class="mv-item" href="estante.html">Estante</a>
+        <a class="mv-item" href="leitura.html">Leitura ativa</a>
+        <a class="mv-item ativo" href="registros.html">Registros</a>
+        <a class="mv-item" href="calendario.html">Calendário</a>
+      </nav>
+      <div class="side-tip">
+        <span class="lamp"></span>a lâmpada está acesa desde as 21h04 · pág 132
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="main-inner">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <p class="eyebrow">A semana em uma linha</p>
+            <h1 class="titulo-pag" style="font-size: 1.4rem;">Página 132 · 40 min · Fogo de Chão</h1>
+            <p class="sub">142 minutos somados desde segunda · 4 dias com leitura</p>
+          </div>
+          <div class="cartao" style="text-align: right;">
+            <p class="fina" style="margin: 0;">sequência atual</p>
+            <p style="margin: 2px 0 0; font-family: var(--mono); font-size: 1.4rem; font-weight: 700; color: var(--fita);">4 dias</p>
+          </div>
+        </div>
+
+        <section class="cartao journey" style="margin-top: 20px; padding: 8px 18px;">
+          <div class="parada">
+            <div><span class="quando">Quinta, 17</span> <span class="o-que">· Fogo de Chão — devagar, como deve ser</span></div>
+            <span class="tempo">87 → 132 · 40 min</span>
+          </div>
+          <div class="parada">
+            <div><span class="quando">Quarta, 16</span> <span class="o-que">· Fogo de Chão — o capítulo ganhou corpo</span></div>
+            <span class="tempo">64 → 87 · 27 min</span>
+          </div>
+          <div class="parada">
+            <div><span class="quando">Terça, 15</span> <span class="o-que">· Cartas a um Jovem Poeta — no intervalo de uma pausa</span></div>
+            <span class="tempo">18 → 24 · 12 min</span>
+          </div>
+          <div class="parada">
+            <div><span class="quando">Segunda, 14</span> <span class="o-que">· Água Viva — primeiro fôlego, 35 min inteiros</span></div>
+            <span class="tempo">1 → 41 · 35 min</span>
+          </div>
+        </section>
+
+        <section class="cartao" style="margin-top: 18px;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <p class="eyebrow">Lombo da semana</p>
+            <p class="fina">cada fatia = minutos</p>
+          </div>
+          <div style="display: flex; align-items: flex-end; gap: 8px; height: 120px; margin-top: 10px;">
+            <div style="flex: 1; height: 58%; border-radius: 6px 6px 0 0; background: linear-gradient(180deg, #d0aa6e, #b8914f);"></div>
+            <div style="flex: 1; height: 18%; border-radius: 6px 6px 0 0; background: linear-gradient(180deg, #d59a78, #b9704d);"></div>
+            <div style="flex: 1; height: 42%; border-radius: 6px 6px 0 0; background: linear-gradient(180deg, #86a495, #5d7f70);"></div>
+            <div style="flex: 1; height: 62%; border-radius: 6px 6px 0 0; background: linear-gradient(180deg, #b098c8, #8571a5);"></div>
+          </div>
+          <p class="fina" style="margin-top: 10px;">Seg · Ter · Qua · Qui — a semana foi generosa; o calendário confirma.</p>
+        </section>
+
+        <footer class="rodape-in">
+          <a style="color: var(--fita); text-decoration: underline; text-underline-offset: 3px;" href="calendario.html">ver setembro em círculos</a> · os números moram aqui, a história mora na estante
+        </footer>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

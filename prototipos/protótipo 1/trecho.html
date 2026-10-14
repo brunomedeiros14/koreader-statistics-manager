@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trilha do Leitor — Trecho em andamento</title>
+  <link rel="stylesheet" href="estilo.css" />
+</head>
+<body>
+  <header class="cabecalho">
+    <div class="container linha">
+      <span class="marca"><span class="bandeira"></span>Trilha do Leitor</span>
+      <nav class="links">
+        <a href="mapa.html">Mapa</a>
+        <a href="trecho.html" class="ativo">Trecho</a>
+        <a href="diario.html">Diário de bordo</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container container-estreito" style="max-width: 560px;">
+    <p class="eyebrow">Trecho em andamento → Fogo de Chão</p>
+    <h1 class="titulo" style="font-size: 1.5rem; margin-top: 6px;">Você está aqui</h1>
+    <p class="sub">Bandeira fincada na página 132 · caminhando desde 21h04.</p>
+
+    <svg class="mapa-svg" viewBox="0 0 520 120" role="img" aria-label="Trecho de leitura atual, da página 87 até a 132, rumo ao marco de 150">
+      <circle cx="40" cy="60" r="6" fill="#f3eddd" stroke="#465635" stroke-width="2" />
+      <text x="40" y="36" font-family="ui-monospace, monospace" font-size="11" fill="#6d6350">pág 87</text>
+      <path d="M40 60 C 160 54, 180 76, 300 66" fill="none" stroke="#5b6c44" stroke-width="4" stroke-linecap="round" />
+      <path d="M300 66 C 370 60, 380 44, 410 46" fill="none" stroke="#c2543c" stroke-width="4" stroke-linecap="round" stroke-dasharray="7 6" />
+      <circle cx="410" cy="46" r="6" fill="#f3eddd" stroke="#c2543c" stroke-width="2.5" />
+      <line x1="418" y1="44" x2="426" y2="28" stroke="#c2543c" stroke-width="2" />
+      <path d="M426 18 L 440 28 L 426 38 Z" fill="#c2543c" />
+      <text x="426" y="12" font-family="ui-monospace, monospace" font-size="12" font-weight="700" fill="#93382a">132 agora</text>
+      <text x="470" y="96" font-family="ui-monospace, monospace" font-size="11" fill="#6d6350">marco 150</text>
+      <circle cx="500" cy="84" r="6" fill="none" stroke="#c2543c" stroke-dasharray="3 3" stroke-width="2" />
+    </svg>
+
+    <section class="rolo" style="padding: 18px 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px;">
+        <p class="eyebrow">Distância desta sessão</p>
+        <p class="mono">45 passos · 1 légua e 5 passos</p>
+      </div>
+      <p class="valor-grande" style="margin-top: 6px;">00:24:17 <small>na trilha</small></p>
+      <div class="barra" style="margin: 14px 0 6px;">
+        <i style="width: 88%;"></i>
+      </div>
+      <p class="fina">próximo marco a 18 páginas — a bandeirinha do mapa será cravada na 150.</p>
+    </section>
+
+    <section class="rolo" style="padding: 18px 20px; margin-top: 16px;">
+      <p class="eyebrow">Horário do acampamento</p>
+      <p style="margin: 8px 0 0;">A trilha termina quando você pousa o livro — ninguém corre contra o relógio por aqui.</p>
+      <div class="lado-a-lado" style="margin-top: 14px;">
+        <button class="btn btn-linha">Descartar o trecho</button>
+        <button class="btn btn-primario">Cavar a bandeira → finalizar</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="rodape-fino">
+    <div class="container">
+      <a href="mapa.html">voltar ao mapa</a> · o e-reader guarda o ritmo mesmo com a tela apagada
+    </div>
+  </footer>
+</body>
+</html>

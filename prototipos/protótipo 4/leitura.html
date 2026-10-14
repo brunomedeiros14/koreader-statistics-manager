@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Leitura Manual — Leitura ativa</title>
+  <link rel="stylesheet" href="estilo.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="side">
+      <div class="marca">
+        <div class="nome">Leitura Manual</div>
+        <div class="sub">caderno de estante</div>
+      </div>
+      <nav class="mv">
+        <a class="mv-item" href="estante.html">Estante</a>
+        <a class="mv-item ativo" href="leitura.html">Leitura ativa</a>
+        <a class="mv-item" href="registros.html">Registros</a>
+        <a class="mv-item" href="calendario.html">Calendário</a>
+      </nav>
+      <div class="side-tip">
+        <span class="lamp"></span>a lâmpada está acesa desde as 21h04 · pág 132
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="main-inner" style="max-width: 540px; text-align: center; margin: 0 auto;">
+        <p class="eyebrow">Leitura em andamento</p>
+        <h1 class="titulo-pag">Fogo de Chão</h1>
+        <p class="sub">Início hoje às 21h04 · página 87 → 132 em aberto.</p>
+
+        <div style="margin: 30px auto 12px; max-width: 340px;">
+          <div class="barra" style="height: 10px;"><i style="width: 61%;"></i></div>
+          <p class="fina" style="margin-top: 8px;">61% da sessão esperada · cerca de 41% do volume</p>
+        </div>
+
+        <p class="timer" id="timer">00:24:17</p>
+        <p class="fina" style="margin: 0;">desde que você abriu o livro — a tela pode apagar, a fita não corre.</p>
+
+        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 28px;">
+          <button class="btn btn-linha">Descartar leitura</button>
+          <button class="btn btn-primario">Finalizar leitura</button>
+        </div>
+
+        <p class="fina" style="margin-top: 40px;">
+          Na lateral, a lâmpada da casa acompanha a sessão — quando você finaliza, ela se apaga e o dia ganha um círculo no calendário.
+        </p>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      const inicio = Date.now() - 24 * 60000 - 17 * 1000;
+      const timer = document.getElementById("timer");
+      const fmt = (ms) => {
+        const s = Math.floor(ms / 1000);
+        const h = String(Math.floor(s / 3600)).padStart(2, "0");
+        const m = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
+        const seg = String(s % 60).padStart(2, "0");
+        return h + ":" + m + ":" + seg;
+      };
+      const passo = () => { timer.textContent = fmt(Date.now() - inicio); };
+      passo();
+      window.setInterval(passo, 1000);
+    })();
+  </script>
+</body>
+</html>

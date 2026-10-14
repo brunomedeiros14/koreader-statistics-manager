@@ -21,17 +21,15 @@ export function Modal({ open, onClose, title, children, footer }: ModalProps) {
   return (
     <dialog
       ref={ref}
-      className="card m-auto w-[92%] max-w-md p-0 backdrop:bg-neutral-900/40 dark:backdrop:bg-black/70"
+      className="card m-auto max-h-[85dvh] w-[92%] max-w-md overflow-y-auto p-0 backdrop:bg-tinta/40"
       onClose={onClose}
       onCancel={onClose}
       onClick={(e) => {
         if (e.target === ref.current) onClose();
       }}
     >
-      <div className="border-b border-neutral-200 dark:border-neutral-800 px-4 py-3">
-        <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
-          {title}
-        </h2>
+      <div className="border-b border-linha px-4 py-3">
+        <h2 className="text-base font-semibold text-tinta">{title}</h2>
       </div>
       <div className="p-4">{children}</div>
       {footer}

@@ -11,7 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdicionarRouteImport } from './routes/adicionar'
+import { Route as CalendarioRouteImport } from './routes/calendario'
 import { Route as ConfigRouteImport } from './routes/config'
+import { Route as EstatisticasRouteImport } from './routes/estatisticas'
 import { Route as IniciarRouteImport } from './routes/iniciar'
 import { Route as RegistrosRouteImport } from './routes/registros'
 
@@ -25,9 +27,19 @@ const AdicionarRoute = AdicionarRouteImport.update({
   path: '/adicionar',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CalendarioRoute = CalendarioRouteImport.update({
+  id: '/calendario',
+  path: '/calendario',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ConfigRoute = ConfigRouteImport.update({
   id: '/config',
   path: '/config',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EstatisticasRoute = EstatisticasRouteImport.update({
+  id: '/estatisticas',
+  path: '/estatisticas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IniciarRoute = IniciarRouteImport.update({
@@ -44,14 +56,18 @@ const RegistrosRoute = RegistrosRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/adicionar': typeof AdicionarRoute
+  '/calendario': typeof CalendarioRoute
   '/config': typeof ConfigRoute
+  '/estatisticas': typeof EstatisticasRoute
   '/iniciar': typeof IniciarRoute
   '/registros': typeof RegistrosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/adicionar': typeof AdicionarRoute
+  '/calendario': typeof CalendarioRoute
   '/config': typeof ConfigRoute
+  '/estatisticas': typeof EstatisticasRoute
   '/iniciar': typeof IniciarRoute
   '/registros': typeof RegistrosRoute
 }
@@ -59,22 +75,48 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/adicionar': typeof AdicionarRoute
+  '/calendario': typeof CalendarioRoute
   '/config': typeof ConfigRoute
+  '/estatisticas': typeof EstatisticasRoute
   '/iniciar': typeof IniciarRoute
   '/registros': typeof RegistrosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/adicionar' | '/config' | '/iniciar' | '/registros'
+  fullPaths:
+    | '/'
+    | '/adicionar'
+    | '/calendario'
+    | '/config'
+    | '/estatisticas'
+    | '/iniciar'
+    | '/registros'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/adicionar' | '/config' | '/iniciar' | '/registros'
-  id: '__root__' | '/' | '/adicionar' | '/config' | '/iniciar' | '/registros'
+  to:
+    | '/'
+    | '/adicionar'
+    | '/calendario'
+    | '/config'
+    | '/estatisticas'
+    | '/iniciar'
+    | '/registros'
+  id:
+    | '__root__'
+    | '/'
+    | '/adicionar'
+    | '/calendario'
+    | '/config'
+    | '/estatisticas'
+    | '/iniciar'
+    | '/registros'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdicionarRoute: typeof AdicionarRoute
+  CalendarioRoute: typeof CalendarioRoute
   ConfigRoute: typeof ConfigRoute
+  EstatisticasRoute: typeof EstatisticasRoute
   IniciarRoute: typeof IniciarRoute
   RegistrosRoute: typeof RegistrosRoute
 }
@@ -95,11 +137,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdicionarRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/calendario': {
+      id: '/calendario'
+      path: '/calendario'
+      fullPath: '/calendario'
+      preLoaderRoute: typeof CalendarioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/config': {
       id: '/config'
       path: '/config'
       fullPath: '/config'
       preLoaderRoute: typeof ConfigRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/estatisticas': {
+      id: '/estatisticas'
+      path: '/estatisticas'
+      fullPath: '/estatisticas'
+      preLoaderRoute: typeof EstatisticasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/iniciar': {
@@ -122,7 +178,9 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdicionarRoute: AdicionarRoute,
+  CalendarioRoute: CalendarioRoute,
   ConfigRoute: ConfigRoute,
+  EstatisticasRoute: EstatisticasRoute,
   IniciarRoute: IniciarRoute,
   RegistrosRoute: RegistrosRoute,
 }

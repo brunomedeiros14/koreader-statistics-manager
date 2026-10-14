@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Leitura Manual — Estante</title>
+  <link rel="stylesheet" href="estilo.css" />
+</head>
+<body>
+  <header class="cabecalho">
+    <div class="container">
+      <span class="marca">Leitura<span> Manual</span></span>
+      <nav class="links">
+        <a href="leitura.html">Leitura atual</a>
+        <a href="registros.html">Registros</a>
+        <a href="configuracao.html">Configuração</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero moldura">
+      <div class="hero-capa">
+        <div class="capa">
+          <div class="capa-aparencia" style="background: linear-gradient(160deg, #5c4632 0%, #2e2419 100%);"></div>
+          <span class="capa-titulo">Fogo de Chão</span>
+        </div>
+        <span class="fita-mini">41%</span>
+      </div>
+      <div class="hero-info">
+        <p class="eyebrow">Pegue onde parou</p>
+        <h1 class="titulo">Fogo de Chão</h1>
+        <p class="sub">Você está na página <b>132</b> de 320 · último registro hoje às 21h04</p>
+        <div class="barra" style="width: 100%;">
+          <i style="width: 41%;"></i>
+        </div>
+        <div class="hero-acoes">
+          <button class="btn btn-primario">Continuar lendo</button>
+          <a class="btn btn-linha" href="leitura.html">Ver leitura atual</a>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="titulo" style="font-size: 1.1rem; margin-bottom: 4px;">Sua estante</h2>
+      <p class="fina">As fitas marcam onde cada leitura parou.</p>
+      <div class="prateleira" style="margin-top: 18px;">
+        <article class="item-livro">
+          <div class="capa" style="transform: rotate(-0.6deg);">
+            <div class="capa-aparencia" style="background: linear-gradient(160deg, #6d4a2f 0%, #3a2a18 100%);"></div>
+            <span class="capa-titulo">O Mediterrâneo</span>
+            <span class="fita-mini">37%</span>
+          </div>
+          <p style="font-weight: 600; font-size: 0.93rem;">O Mediterrâneo</p>
+          <p class="pg">Estava na <b>página 96</b></p>
+        </article>
+
+        <article class="item-livro">
+          <div class="capa" style="transform: rotate(0.7deg);">
+            <div class="capa-aparencia" style="background: linear-gradient(160deg, #3c5a52 0%, #1f332e 100%);"></div>
+            <span class="capa-titulo">Água Viva</span>
+            <span class="fita-mini">82%</span>
+          </div>
+          <p style="font-weight: 600; font-size: 0.93rem;">Água Viva</p>
+          <p class="pg">Estava na <b>página 210</b></p>
+        </article>
+
+        <article class="item-livro">
+          <div class="capa" style="transform: rotate(-0.3deg);">
+            <div class="capa-aparencia" style="background: linear-gradient(160deg, #8a5a3e 0%, #4a2f1e 100%);"></div>
+            <span class="capa-titulo">Cartas a um Jovem Poeta</span>
+            <span class="fita-mini">12%</span>
+          </div>
+          <p style="font-weight: 600; font-size: 0.93rem;">Cartas a um Jovem Poeta</p>
+          <p class="pg">Estava na <b>página 28</b></p>
+        </article>
+
+        <article class="item-livro">
+          <div class="capa" style="transform: rotate(0.5deg);">
+            <div class="capa-aparencia" style="background: linear-gradient(160deg, #4f4a70 0%, #2a2740 100%);"></div>
+            <span class="capa-titulo">Vigília</span>
+            <span class="fita-mini">64%</span>
+          </div>
+          <p style="font-weight: 600; font-size: 0.93rem;">Vigília</p>
+          <p class="pg">Estava na <b>página 141</b></p>
+        </article>
+
+        <article class="item-livro">
+          <div class="capa" style="transform: rotate(-0.9deg);">
+            <div class="capa-aparencia" style="background: linear-gradient(160deg, #7a4a3a 0%, #40241c 100%);"></div>
+            <span class="capa-titulo">Os Sertões</span>
+          </div>
+          <p style="font-weight: 600; font-size: 0.93rem;">Os Sertões</p>
+          <p class="pg">Ainda <b>não começou</b></p>
+        </article>
+
+        <article class="item-livro">
+          <div class="capa" style="transform: rotate(0.4deg);">
+            <div class="capa-aparencia" style="background: linear-gradient(160deg, #3d5a4f 0%, #23332c 100%);"></div>
+            <span class="capa-titulo">Ensaio sobre a Cegueira</span>
+            <span class="fita-mini">58%</span>
+          </div>
+          <p style="font-weight: 600; font-size: 0.93rem;">Ensaio sobre a Cegueira</p>
+          <p class="pg">Estava na <b>página 170</b></p>
+        </article>
+      </div>
+
+      <div class="paginacao">
+        <button class="btn btn-linha" disabled>‹ Anterior</button>
+        <span class="fina">Página 1 de 1</span>
+        <button class="btn btn-linha" disabled>Próxima ›</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="rodape-fino">
+    <div class="container fina">
+      Nenhum registro precisa ser lembrado — tudo alimenta a estante. ·
+      <a href="configuracao.html">cadastrar livro</a>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Leitura Manual — Configuração</title>
+  <link rel="stylesheet" href="estilo.css" />
+</head>
+<body>
+  <header class="cabecalho">
+    <div class="container">
+      <span class="marca">Leitura<span> Manual</span></span>
+      <nav class="links">
+        <a href="estante.html">Estante</a>
+        <a href="leitura.html">Leitura atual</a>
+        <a href="registros.html">Registros</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <p class="eyebrow">Configuração</p>
+    <h1 class="titulo" style="font-size: 1.6rem; margin-top: 4px;">Livros da estante</h1>
+    <p class="sub" style="margin-top: 6px;">Cadastre com calma — uma capa por vez aproxima o livro da prateleira.</p>
+
+    <div class="grelha-config" style="margin-top: 22px;">
+      <section class="cel" style="padding: 4px 16px;">
+        <div class="linha-livro-config">
+          <div class="mini-capa">
+            <div class="capa-aparencia" style="background: linear-gradient(160deg, #6d4a2f 0%, #3a2a18 100%);"></div>
+          </div>
+          <div class="sobre">
+            <h4 style="margin: 0; font-size: 0.98rem;">Fogo de Chão</h4>
+            <p style="margin: 2px 0 0; color: var(--tinta-2); font-size: 0.84rem;">Autor a definir</p>
+          </div>
+          <p class="pg" style="text-align: right;">320 pág.</p>
+          <div class="comando">
+            <button class="mini-btn">Novo registro</button>
+            <button class="mini-btn">Excluir</button>
+          </div>
+        </div>
+        <div class="linha-livro-config">
+          <div class="mini-capa">
+            <div class="capa-aparencia" style="background: linear-gradient(160deg, #3c5a52 0%, #1f332e 100%);"></div>
+          </div>
+          <div class="sobre">
+            <h4 style="margin: 0; font-size: 0.98rem;">Água Viva</h4>
+            <p style="margin: 2px 0 0; color: var(--tinta-2); font-size: 0.84rem;">Clarice Lispector</p>
+          </div>
+          <p class="pg" style="text-align: right;">—</p>
+          <div class="comando">
+            <button class="mini-btn">Novo registro</button>
+            <button class="mini-btn">Excluir</button>
+          </div>
+        </div>
+        <div class="linha-livro-config">
+          <div class="mini-capa">
+            <div class="capa-aparencia" style="background: linear-gradient(160deg, #4f4a70 0%, #2a2740 100%);"></div>
+          </div>
+          <div class="sobre">
+            <h4 style="margin: 0; font-size: 0.98rem;">Vigília</h4>
+            <p style="margin: 2px 0 0; color: var(--tinta-2); font-size: 0.84rem;">—</p>
+          </div>
+          <p class="pg" style="text-align: right;">220 pág.</p>
+          <div class="comando">
+            <button class="mini-btn">Excluir</button>
+          </div>
+        </div>
+        <div class="linha-livro-config">
+          <div class="mini-capa">
+            <div class="capa-aparencia" style="background: linear-gradient(160deg, #8a5a3e 0%, #4a2f1e 100%);"></div>
+          </div>
+          <div class="sobre">
+            <h4 style="margin: 0; font-size: 0.98rem;">Cartas a um Jovem Poeta</h4>
+            <p style="margin: 2px 0 0; color: var(--tinta-2); font-size: 0.84rem;">Rilke</p>
+          </div>
+          <p class="pg" style="text-align: right;">76 pág.</p>
+          <div class="comando">
+            <button class="mini-btn">Excluir</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="grupo">
+        <section class="nota-lapis">
+          <p>
+            A capa é opcional. Sem ela, o livro entra na prateleira com a lombada em
+            papel simples — tão na estante quanto qualquer outro.
+          </p>
+        </section>
+
+        <section class="placeholder-form">
+          <p class="eyebrow">Adicionar livro</p>
+          <form style="margin-top: 12px; display: flex; flex-direction: column; gap: 14px;">
+            <div>
+              <label class="rotulo" for="titulo">Título</label>
+              <input class="campo" id="titulo" type="text" placeholder="Ex.: Ensaio sobre a Cegueira" />
+            </div>
+            <div>
+              <label class="rotulo" for="autor">Autor <span class="fina">(opcional)</span></label>
+              <input class="campo" id="autor" type="text" placeholder="Ex.: José Saramago" />
+            </div>
+            <div>
+              <label class="rotulo" for="capa">Capa <span class="fina">(opcional)</span></label>
+              <input class="campo" id="capa" type="file" accept="image/png,image/jpeg,image/webp" />
+            </div>
+            <button class="btn btn-primario" type="submit">Adicionar à estante</button>
+          </form>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="rodape-fino">
+    <div class="container fina">
+      Depois de salvar, o e-reader passa a reconhecer o livro pelo arquivo — sem XML manual
+    </div>
+  </footer>
+</body>
+</html>
