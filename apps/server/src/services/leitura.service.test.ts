@@ -18,8 +18,8 @@ const { upsertLivro } = await import("./livros.service");
 type OkLeitura = Extract<LeituraMutacao, { ok: true }>;
 type ErrLeitura = Extract<LeituraMutacao, { ok: false }>;
 
-const MD5 = "0feedeadbeefcafe0feedeadbeefcafe";
-const OP_ID = "op-1";
+const MD5 = crypto.randomUUID().replaceAll("-", "");
+const OP_ID = `op-${crypto.randomUUID()}`;
 
 const payload = {
   op_id: OP_ID,
@@ -78,7 +78,7 @@ describe("criarLeitura", () => {
 describe("listarLeitura", () => {
   it("filtra por md5", async () => {
     const res = await listarLeitura({ md5: MD5, limit: "10", page: "1" });
-    expect(res.total).toBe(3);
+    expect(res.total).toBe(1);
     expect(res.registros[0]?.titulo).toBe("Livro Teste");
   });
   it("filtro por md5 desconhecido retorna vazio", async () => {

@@ -1,6 +1,8 @@
 import { Database } from "bun:sqlite";
 import { eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/bun-sqlite";
+import { mkdirSync } from "fs";
+import { dirname } from "path";
 
 import type {
   LeituraExportRow,
@@ -24,6 +26,7 @@ const runRows = (result: unknown): SqlRunResult => result as SqlRunResult;
 // Adaptador SQLite (bun:sqlite + drizzle). O cliente do bun:sqlite é síncrono,
 // mas a interface Repo é assíncrona para ser idêntica à do Postgres.
 export const criarRepoSqlite = (): Repo => {
+  mkdirSync(dirname(DB_SQLITE_PATH), { recursive: true });
   const sqlite = new Database(DB_SQLITE_PATH);
   sqlite.run("PRAGMA journal_mode = WAL");
   sqlite.run("PRAGMA foreign_keys = ON");
@@ -198,7 +201,10 @@ export const criarRepoSqlite = (): Repo => {
     },
 
     async atualizarLeitura(id, patch) {
-      db.update(schema.leitura).set(patch).where(eq(schema.leitura.id, id)).run();
+      db.update(schema.leitura)
+        .set(patch)
+        .where(eq(schema.leitura.id, id))
+        .run();
     },
 
     async stats() {
