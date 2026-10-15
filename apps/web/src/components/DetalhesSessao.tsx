@@ -1,135 +1,125 @@
 import type { LeituraRegistro } from "@leitura/common";
-import { ChevronDown } from "lucide-react";
-import {
-  Fragment,
-  useEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
-import { createPortal } from "react-dom";
+import { Info } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { useState, type ReactNode } from "react";
 
-import { fmtDuracao, fmtLocal as fmt, minutosEntre } from "../lib/format";
+import { chaveDiaLocal } from "../lib/calendario";
+import { fmtDuracao, fmtLocal, minutosEntre } from "../lib/format";
+import { Modal } from "./Modal";
 
 const paginasLidas = (r: LeituraRegistro): number | null =>
   r.numero_2 >= r.numero_1 ? r.numero_2 - r.numero_1 + 1 : null;
 
+function Bloco({ rotulo, valor }: { rotulo: string; valor: ReactNode }) {
+  return (
+    <div className="rounded-lg border border-linha bg-papel px-3 py-2 text-center">
+      <div className="font-mono text-sm font-semibold tabular-nums text-tinta">
+        {valor}
+      </div>
+      <div className="mt-0.5 text-[0.6rem] uppercase tracking-widest text-tinta-3">
+        {rotulo}
+      </div>
+    </div>
+  );
+}
+
+function Linha({ rotulo, valor }: { rotulo: string; valor: ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-4 px-3 py-2.5">
+      <dt className="text-xs text-tinta-3">{rotulo}</dt>
+      <dd className="text-right text-sm tabular-nums text-tinta">{valor}</dd>
+    </div>
+  );
+}
+
 export function DetalhesSessao({ registro }: { registro: LeituraRegistro }) {
   const [aberto, setAberto] = useState(false);
-  const [pos, setPos] = useState({ top: 0, left: 0 });
-  const botaoRef = useRef<HTMLButtonElement>(null);
-  const painelRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!aberto) return;
-    const fechar = (): void => setAberto(false);
-    const aoClicar = (e: MouseEvent): void => {
-      const alvo = e.target as Node;
-      if (botaoRef.current?.contains(alvo) || painelRef.current?.contains(alvo)) {
-        return;
-      }
-      setAberto(false);
-    };
-    const aoTeclar = (e: KeyboardEvent): void => {
-      if (e.key === "Escape") setAberto(false);
-    };
-    document.addEventListener("mousedown", aoClicar);
-    document.addEventListener("keydown", aoTeclar);
-    window.addEventListener("resize", fechar);
-    window.addEventListener("scroll", fechar, true);
-    return () => {
-      document.removeEventListener("mousedown", aoClicar);
-      document.removeEventListener("keydown", aoTeclar);
-      window.removeEventListener("resize", fechar);
-      window.removeEventListener("scroll", fechar, true);
-    };
-  }, [aberto]);
-
-  const alternar = (): void => {
-    if (!aberto) {
-      const r = botaoRef.current?.getBoundingClientRect();
-      if (r) {
-        const largura = Math.min(264, window.innerWidth - 16);
-        const margem = 8;
-        const left = Math.max(
-          margem,
-          Math.min(r.right - largura, window.innerWidth - largura - margem),
-        );
-        const altura = 280;
-        const abaixo = window.innerHeight - r.bottom;
-        const top =
-          abaixo < altura + 16
-            ? Math.max(margem, r.top - altura - 6)
-            : r.bottom + 6;
-        setPos({ top, left });
-      }
-    }
-    setAberto((a) => !a);
-  };
-
-  const paginas = paginasLidas(registro);
+  const inicio = new Date(registro.data_hora_1);
+  const fim = new Date(registro.data_hora_2);
   const minutos = minutosEntre(registro.data_hora_1, registro.data_hora_2);
+  const paginas = paginasLidas(registro);
   const velocidade =
     paginas !== null && minutos > 0
       ? (paginas / minutos).toLocaleString("pt-BR", {
           maximumFractionDigits: 1,
         }) + " p/min"
       : "—";
+  const cruzou = chaveDiaLocal(inicio) !== chaveDiaLocal(fim);
 
-  const linhas: [string, ReactNode][] = [
-    ["ID", registro.id],
-    ["Início", fmt(registro.data_hora_1)],
-    ["Fim", fmt(registro.data_hora_2)],
-    ["Duração", fmtDuracao(minutos)],
-    ["Velocidade", velocidade],
-    [
-      "Páginas",
-      `${registro.numero_1} → ${registro.numero_2} de ${registro.numero_3}`,
-    ],
-    ["Páginas lidas", paginas ?? "—"],
-    ["Origem", registro.origem || "—"],
-    ["Atualizado", registro.updated_at ? fmt(registro.updated_at) : "—"],
-  ];
+  const fechar = (): void => setAberto(false);
 
   return (
     <>
       <button
-        ref={botaoRef}
         type="button"
         className="btn-icone"
-        title="Detalhes da sessão"
-        aria-label="Detalhes da sessão"
-        aria-expanded={aberto}
-        onClick={alternar}
+        title="Detalhes da leitura"
+        aria-label="Detalhes da leitura"
+        onClick={() => setAberto(true)}
       >
-        <ChevronDown className="h-4 w-4" />
+        <Info className="h-4 w-4" />
       </button>
-      {aberto
-        ? createPortal(
-            <div
-              ref={painelRef}
-              role="dialog"
-              aria-label="Detalhes da sessão"
-              style={{ top: pos.top, left: pos.left }}
-              className="fixed z-50 max-h-[70dvh] w-[min(264px,calc(100vw-1rem))] overflow-y-auto rounded-lg border border-linha-2 bg-papel-2 p-3 text-sm shadow-[0_10px_30px_rgb(0_0_0/0.2)]"
+
+      <Modal
+        open={aberto}
+        onClose={fechar}
+        title={registro.titulo || "Detalhes da leitura"}
+        footer={
+          <div className="flex items-center justify-between gap-2 border-t border-linha px-4 py-3">
+            {registro.md5 ? (
+              <Link
+                to="/registros"
+                search={{ md5: registro.md5 }}
+                className="btn btn-outline h-8 px-3"
+                onClick={fechar}
+              >
+                Ver registros do livro
+              </Link>
+            ) : (
+              <span />
+            )}
+            <button
+              type="button"
+              className="btn btn-primario h-8 px-3"
+              onClick={fechar}
             >
-              <p className="mb-2 font-mono text-xs uppercase tracking-wide text-tinta-3">
-                Detalhes da sessão
-              </p>
-              <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5">
-                {linhas.map(([rotulo, valor]) => (
-                  <Fragment key={rotulo}>
-                    <dt className="text-tinta-3">{rotulo}</dt>
-                    <dd className="text-right tabular-nums text-tinta">
-                      {valor}
-                    </dd>
-                  </Fragment>
-                ))}
-              </dl>
-            </div>,
-            document.body,
-          )
-        : null}
+              Fechar
+            </button>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <div className="grid grid-cols-3 gap-2">
+            <Bloco rotulo="Duração" valor={fmtDuracao(minutos)} />
+            <Bloco rotulo="Velocidade" valor={velocidade} />
+            <Bloco rotulo="Páginas lidas" valor={paginas ?? "—"} />
+          </div>
+
+          {cruzou ? (
+            <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-800/50 dark:bg-amber-900/20 dark:text-amber-300">
+              Esta sessão atravessou a meia-noite — começou em{" "}
+              {fmtLocal(registro.data_hora_1)} e terminou em{" "}
+              {fmtLocal(registro.data_hora_2)}, contando nos dois dias.
+            </div>
+          ) : null}
+
+          <dl className="divide-y divide-linha rounded-lg border border-linha">
+            <Linha rotulo="Início" valor={fmtLocal(registro.data_hora_1)} />
+            <Linha rotulo="Fim" valor={fmtLocal(registro.data_hora_2)} />
+            <Linha
+              rotulo="Páginas"
+              valor={`${registro.numero_1} → ${registro.numero_2} de ${registro.numero_3}`}
+            />
+            <Linha rotulo="Origem" valor={registro.origem || "—"} />
+            <Linha
+              rotulo="Atualizado"
+              valor={registro.updated_at ? fmtLocal(registro.updated_at) : "—"}
+            />
+            <Linha rotulo="Registro" valor={`#${registro.id}`} />
+          </dl>
+        </div>
+      </Modal>
     </>
   );
 }

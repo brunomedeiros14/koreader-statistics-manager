@@ -1,7 +1,13 @@
 import type { LeituraRegistro, Livro } from "@leitura/common";
 import { Pencil, RotateCcw, Trash2 } from "lucide-react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 
 import {
   apiDeleteLeitura,
@@ -22,7 +28,12 @@ import {
   paraUtc,
 } from "../lib/format";
 
-export const Route = createFileRoute("/registros")({ component: RegistrosPage });
+export const Route = createFileRoute("/registros")({
+  component: RegistrosPage,
+  validateSearch: (search: Record<string, unknown>): { md5?: string } => ({
+    md5: typeof search.md5 === "string" ? search.md5 : undefined,
+  }),
+});
 
 const POR_PAGINA = 10;
 
@@ -141,9 +152,10 @@ interface Filtros {
 }
 
 function RegistrosPage() {
+  const { md5: md5Busca } = Route.useSearch();
   const [livros, setLivros] = useState<Livro[]>([]);
   const [filtros, setFiltros] = useState<Filtros>({
-    livro: "",
+    livro: md5Busca ?? "",
     sync: "",
     inicio: "",
     fim: "",
@@ -151,6 +163,16 @@ function RegistrosPage() {
   const [pagina, setPagina] = useState(1);
   const [editando, setEditando] = useState<LeituraRegistro | null>(null);
   const [ordem, setOrdem] = useState<Ordem>({ chave: "id", dir: -1 });
+
+  // Links externos (ex.: "Ver registros do livro") chegam como ?md5=; aplica o
+  // filtro quando o parâmetro muda sem remontar a página.
+  const md5Ref = useRef<string | undefined>(md5Busca);
+  useEffect(() => {
+    if (md5Ref.current === md5Busca) return;
+    md5Ref.current = md5Busca;
+    setFiltros((f) => ({ ...f, livro: md5Busca ?? "" }));
+    setPagina(1);
+  }, [md5Busca]);
 
   const queryFiltros = (incluirPagina: boolean): URLSearchParams => {
     const params: Record<string, string> = {};

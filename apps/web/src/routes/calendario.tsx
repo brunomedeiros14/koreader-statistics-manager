@@ -207,6 +207,7 @@ function CalendarioPage() {
         A sequência vale mais que o recorde — pular um dia não desata nada.{" "}
         <Link
           to="/registros"
+          search={{}}
           className="text-fita underline underline-offset-4 hover:text-fita-2"
         >
           ver os registros

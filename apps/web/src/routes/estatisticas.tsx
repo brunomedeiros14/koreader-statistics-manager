@@ -229,6 +229,7 @@ function EstatisticasPage() {
         , ou{" "}
         <Link
           to="/registros"
+          search={{}}
           className="text-fita underline underline-offset-4 hover:text-fita-2"
         >
           veja o histórico completo
