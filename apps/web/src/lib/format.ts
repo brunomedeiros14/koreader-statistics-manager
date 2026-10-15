@@ -8,10 +8,13 @@ export const agoraLocal = (): string => {
   );
 };
 
+// Instant -> canonical UTC string "YYYY-MM-DDTHH:MM:SSZ" (no milliseconds).
+export const paraUtcData = (d: Date): string =>
+  d.toISOString().replace(/\.\d{3}Z$/, "Z");
+
 // Local wall-clock -> canonical UTC instant "YYYY-MM-DDTHH:MM:SSZ".
 // Use for anything sent to the API (A.1/C.3).
-export const paraUtc = (v: string): string =>
-  new Date(v).toISOString().replace(/\.\d{3}Z$/, "Z");
+export const paraUtc = (v: string): string => paraUtcData(new Date(v));
 
 export const uid = (): string => {
   try {

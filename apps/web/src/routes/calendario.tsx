@@ -1,11 +1,12 @@
-import { useState, type ReactNode } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 
-import { apiStats } from "../api";
+import { apiListaLeitura } from "../api";
 import { BannerErro } from "../components/BannerErro";
 import { useApi } from "../hooks/useApi";
-import { fmtDuracao } from "../lib/format";
+import { minutosPorDiaLocal } from "../lib/calendario";
+import { fmtDuracao, paraUtcData } from "../lib/format";
 
 export const Route = createFileRoute("/calendario")({
   component: CalendarioPage,
@@ -13,8 +14,9 @@ export const Route = createFileRoute("/calendario")({
 
 const DIAS_SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
+const POR_PAGINA = 500;
+
 function CalendarioPage() {
-  const stats = useApi(apiStats);
   const hoje = new Date();
   const [visor, setVisor] = useState({
     ano: hoje.getFullYear(),
@@ -25,14 +27,42 @@ function CalendarioPage() {
   const prefixo = `${ano}-${pad(mes + 1)}`;
   const chave = (d: number): string => `${prefixo}-${pad(d)}`;
 
-  const minutosPorDia = new Map<string, number>();
+  // Busca os registros que tocam o mês visível (com um dia de folga em cada
+  // ponta, para sessões que atravessam a virada do mês) e agrupa no fuso local.
+  const carrega = useCallback(async () => {
+    const inicio = new Date(ano, mes, 0);
+    const fim = new Date(ano, mes + 1, 2);
+    const base = {
+      data_inicio: paraUtcData(inicio),
+      data_fim: paraUtcData(fim),
+      sort: "data_hora_1",
+      dir: "asc",
+    };
+    const primeira = await apiListaLeitura(
+      new URLSearchParams({ ...base, page: "1", limit: String(POR_PAGINA) }),
+    );
+    const registros = [...(primeira.registros ?? [])];
+    for (let p = 2; p <= (primeira.pages ?? 1); p++) {
+      const prox = await apiListaLeitura(
+        new URLSearchParams({ ...base, page: String(p), limit: String(POR_PAGINA) }),
+      );
+      registros.push(...(prox.registros ?? []));
+    }
+    return registros;
+  }, [ano, mes]);
+
+  const leituras = useApi(carrega, [carrega]);
+  const minutosPorDia = useMemo(
+    () => minutosPorDiaLocal(leituras.dados ?? []),
+    [leituras.dados],
+  );
+
   let minMes = 0;
-  let diastLidos = 0;
-  for (const d of stats.dados?.por_dia ?? []) {
-    if (!d.dia.startsWith(prefixo)) continue;
-    minutosPorDia.set(d.dia, Math.round(d.horas * 60));
-    minMes += Math.round(d.horas * 60);
-    diastLidos += 1;
+  let diasLidos = 0;
+  for (const [dia, minutos] of minutosPorDia) {
+    if (!dia.startsWith(prefixo)) continue;
+    minMes += minutos;
+    diasLidos += 1;
   }
 
   const diasNoMes = new Date(ano, mes + 1, 0).getDate();
@@ -81,7 +111,7 @@ function CalendarioPage() {
           {d}
         </span>
         <span className="text-[0.56rem] leading-none text-tinta-2">
-          {lido ? `${minutos}'` : "\u00a0"}
+          {minutos !== undefined ? `${Math.round(minutos)}'` : "\u00a0"}
         </span>
       </div>,
     );
@@ -98,13 +128,13 @@ function CalendarioPage() {
         <h1 className="titulo-pag">O mês em círculos</h1>
       </header>
 
-      {stats.carregando ? (
+      {leituras.carregando ? (
         <div className="card mb-6 p-8 text-center text-sm text-tinta-2">
           Carregando…
         </div>
       ) : null}
-      {stats.erro ? (
-        <BannerErro texto={stats.erro} aoTentar={stats.recarregar} />
+      {leituras.erro ? (
+        <BannerErro texto={leituras.erro} aoTentar={leituras.recarregar} />
       ) : null}
 
       <div className="card p-4 md:p-6">
@@ -142,8 +172,8 @@ function CalendarioPage() {
             ) : null}
           </div>
           <p className="font-mono text-xs text-tinta-2">
-            {fmtDuracao(minMes)} · {diastLidos}{" "}
-            {diastLidos === 1 ? "dia com leitura" : "dias com leitura"}
+            {fmtDuracao(minMes)} · {diasLidos}{" "}
+            {diasLidos === 1 ? "dia com leitura" : "dias com leitura"}
           </p>
         </div>
 
