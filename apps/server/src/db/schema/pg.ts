@@ -9,9 +9,10 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 
-// Schema do dialeto Postgres (produção). As alterações de DDL no banco real são
-// aplicadas via migrations versionadas em apps/server/src/db/migrations/pg.ts —
-// mantenha este schema e as migrations em sincronia.
+// Schema do dialeto Postgres (produção). É a fonte de verdade do drizzle-kit: as
+// migrations são geradas a partir daqui (`bun run db:generate`) e aplicadas em
+// runtime pelo migrator do drizzle-orm. Nunca edite as migrations à mão além do
+// baseline idempotente.
 
 export const opcao = pgTable(
   "opcao",

@@ -43,8 +43,9 @@ O plugin conversa apenas com o servidor via HTTP (`/api/leitura`, `/api/livro`,
   `livros.service.ts` (resolve/upsert/salvarConfig), `leitura.service.ts`
   (CRUD com consistência e reset de sincronização), `stats.service.ts`.
 - `src/db/index.ts` — abertura do SQLite `data/leitura.sqlite3`, pragmas (WAL,
-  foreign_keys), criação/migração idempotente das tabelas legadas + índices.
-- `src/db/schema.ts` — reexporta o schema Drizzle de `@leitura/common`.
+  foreign_keys) e aplicação das migrations (drizzle-kit) pelo migrator do
+  drizzle-orm.
+- `src/db/schema/{sqlite,pg}.ts` — schema Drizzle por dialeto (fonte de verdade).
 - `src/validation.ts` — validação pura dos payloads POST/PATCH de leitura;
   o auto-cadastro de livros por `md5` vive em `services/livros.service.ts`.
 
@@ -64,7 +65,8 @@ O plugin conversa apenas com o servidor via HTTP (`/api/leitura`, `/api/livro`,
 
 ### `libs/common` — Tipos e valores compartilhados
 
-- `src/schema.ts` — schema Drizzle das tabelas `opcao` e `leitura`.
+- `src/domain.ts` — interfaces de domínio (tabelas `opcao`/`leitura`, payloads).
+- `src/api-schemas.ts` — schemas TypeBox das rotas.
 - `src/domain.ts` — interfaces de domínio, payloads da API, validadores
   (`isValidIso`, `isValidMd5`, `isValidNumero`, `isValidSyncStatus`, `toNumber`).
 - `src/index.ts` — reexporta ambos.

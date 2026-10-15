@@ -1,10 +1,10 @@
 import { sql } from "drizzle-orm";
 import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
-// Schema do dialeto SQLite (desenvolvimento local). As alterações de DDL no
-// banco real são aplicadas via migrations versionadas em
-// apps/server/src/db/migrations/sqlite.ts — mantenha este schema e as
-// migrations em sincronia.
+// Schema do dialeto SQLite (desenvolvimento local). É a fonte de verdade do
+// drizzle-kit: as migrations são geradas a partir daqui (`bun run db:generate`)
+// e aplicadas em runtime pelo migrator do drizzle-orm. Nunca edite as
+// migrations à mão além do baseline idempotente.
 
 export const opcao = sqliteTable(
   "opcao",

@@ -1,6 +1,8 @@
 import { eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
+import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Pool } from "pg";
+import { join } from "path";
 
 import type {
   LeituraExportRow,
@@ -13,7 +15,6 @@ import type {
 import { DB_POSTGRES } from "./config";
 import { buildOrderBy, buildWhere, DURACAO_PG } from "./filtros";
 import type { FiltrosLeitura } from "./filtros";
-import { runMigrationsPg } from "./migrations/pg";
 import * as schema from "./schema/pg";
 import type { LivroEncontrado, Repo } from "./types";
 
@@ -28,9 +29,12 @@ export const criarRepoPostgres = async (): Promise<Repo> => {
     database: DB_POSTGRES.database,
   });
 
-  await runMigrationsPg(pool);
-
   const db = drizzle(pool, { schema });
+
+  // Migrations versionadas geradas por drizzle-kit (apps/server/drizzle/pg).
+  await migrate(db, {
+    migrationsFolder: join(import.meta.dir, "../../drizzle/pg"),
+  });
 
   const horasPg = sql`COALESCE(ROUND(CAST(SUM(EXTRACT(EPOCH FROM (data_hora_2::timestamptz - data_hora_1::timestamptz))) / 3600 AS numeric), 2), 0)`;
 

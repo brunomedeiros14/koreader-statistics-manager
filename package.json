@@ -11,6 +11,7 @@
     "start": "bun run --filter @leitura/server start",
     "typecheck": "bun run --filter @leitura/common typecheck && bun run --filter @leitura/server typecheck && bun run --filter @leitura/web typecheck",
     "test": "bun test",
+    "db:generate": "bun run --filter @leitura/server db:generate",
     "build-plugin": "bash scripts/build-plugin.sh"
   },
   "devDependencies": {

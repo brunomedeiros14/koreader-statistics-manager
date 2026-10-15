@@ -13,8 +13,10 @@ Existem **três bancos SQLite** e **dois storage de cliente** envolvidos:
 
 ## 1. `data/leitura.sqlite3` (servidor)
 
-Criado/migrado em `apps/server/src/db/index.ts` (DDL manual, idempotente) e tipado no
-schema Drizzle em `libs/common/src/schema.ts`.
+Schema Drizzle em `apps/server/src/db/schema/{sqlite,pg}.ts` (fonte de verdade) e
+tipos de domínio em `libs/common/src/domain.ts`. As migrations são geradas por
+**drizzle-kit** em `apps/server/drizzle/{sqlite,pg}/` e aplicadas em runtime pelo
+migrator do drizzle-orm.
 
 ### Tabela `opcao` — livro mapeado
 
@@ -27,7 +29,7 @@ schema Drizzle em `libs/common/src/schema.ts`.
 | `autor` | TEXT NOT NULL DEFAULT '' | |
 | `imagem` | TEXT NOT NULL DEFAULT '' | Caminho relativo `covers/<md5>.<ext>` ou string vazia. |
 
-- O índice único `idx_opcao_md5` é criado em DDL, mas **não está declarado no schema Drizzle**.
+- O índice único `idx_opcao_md5` é declarado no schema Drizzle e no baseline gerado.
 - Um md5 vazio/inválido é descartado no `POST /api/config`.
 
 ### Tabela `leitura` — registro de leitura

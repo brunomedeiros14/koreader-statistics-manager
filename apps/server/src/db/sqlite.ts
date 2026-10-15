@@ -1,8 +1,9 @@
 import { Database } from "bun:sqlite";
 import { eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/bun-sqlite";
+import { migrate } from "drizzle-orm/bun-sqlite/migrator";
 import { mkdirSync } from "fs";
-import { dirname } from "path";
+import { dirname, join } from "path";
 
 import type {
   LeituraExportRow,
@@ -15,7 +16,6 @@ import type {
 import { DB_SQLITE_PATH } from "./config";
 import { buildOrderBy, buildWhere, DURACAO_SQLITE } from "./filtros";
 import type { FiltrosLeitura } from "./filtros";
-import { runMigrations } from "./migrations/sqlite";
 import * as schema from "./schema/sqlite";
 import type { LivroEncontrado, Repo } from "./types";
 
@@ -31,9 +31,14 @@ export const criarRepoSqlite = (): Repo => {
   const sqlite = new Database(DB_SQLITE_PATH);
   sqlite.run("PRAGMA journal_mode = WAL");
   sqlite.run("PRAGMA foreign_keys = ON");
-  runMigrations(sqlite);
 
   const db = drizzle(sqlite, { schema });
+
+  // Migrations versionadas geradas por drizzle-kit (apps/server/drizzle/sqlite).
+  // O clutch de migration do drizzle registra as aplicadas e é idempotente.
+  migrate(db, {
+    migrationsFolder: join(import.meta.dir, "../../drizzle/sqlite"),
+  });
 
   const repo: Repo = {
     async ping() {

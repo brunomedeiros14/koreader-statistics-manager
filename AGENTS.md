@@ -29,6 +29,7 @@ bun run typecheck      # tsc em common → server → web (use SEMPRE antes de e
 bun test               # bun test em todos os pacotes
 bun run build          # vite build do web (regenera routeTree.gen.ts)
 bun run start          # sobe o server servindo apps/web/dist
+bun run db:generate    # drizzle-kit generate dos dois dialetos (após mudar schema)
 bun run build-plugin   # gera dist/leitura_manual.zip (scripts/build-plugin.sh)
 ```
 
@@ -97,11 +98,14 @@ de negócio, retorna objeto-resultado) → `db` (`repo`) → adaptador de dialet
 - **`db/config.ts`**: único lugar que lê `process.env` de banco
   (`DB_DRIVER`, `DB_SQLITE_PATH`, `DB_POSTGRES_*`). Não leia env de banco em outro
   módulo.
-- **`db/schema/{sqlite,pg}.ts`** + **`db/migrations/{sqlite,pg}.ts`**: schema
-  Drizzle é a referência tipada; a DDL real roda por migrations **versionadas e
-  idempotentes** registradas em `_migrations`. **Mantenha schema e migration em
-  sincronia** — ao adicionar coluna/tabela, crie um novo passo `000N-nome` (nunca
-  edite um passo já aplicado) nos dois dialetos.
+- **`db/schema/{sqlite,pg}.ts`**: schema Drizzle é a **fonte de verdade**. As
+  migrations são geradas por **drizzle-kit** (`apps/server/drizzle.{sqlite,pg}.config.ts`
+  → `apps/server/drizzle/{sqlite,pg}/`) e aplicadas em runtime pelo migrator do
+  drizzle-orm (journal `__drizzle_migrations`). Fluxo: edite o schema → rode
+  `bun run db:generate` → revise o SQL. **Nunca edite uma migration já aplicada**;
+  gere um novo passo. O baseline `0000_inicial` é mantido **idempotente**
+  (`IF NOT EXISTS` + guarda de FK) para adotar bancos criados pelo runner manual
+  antigo (que usava `_migrations`, removido pelo próprio baseline).
 - **`auth.ts`**: token opcional em tempo constante; injeta
   `<meta name="leitura-token">` no SPA quando ativo (`api.ts` lê essa meta).
 
@@ -186,11 +190,12 @@ Lua; ver `docs/ARQUITETURA.md` e `docs/FLUXOS.md` para detalhes. Mapa rápido:
   `db/schema/{sqlite,pg}.ts` e `domain.ts`/`api-schemas.ts`) e
   `docs/PLANO_DE_MELHORIAS.md` (arquivo inexistente). Comentários no código citam
   tags de plano (A.1, B.2, K.1…) que não estão versionadas.
-- Migrations manuais devem migrar para **drizzle-kit** (nota em
-  `.only-local/todo.md`).
-- Tabela legada `campo` já foi removida pela migration `0002`.
-- Índices únicos (`idx_opcao_md5`, `idx_leitura_op_id`) existem na DDL/migrations
-  e nos schemas Drizzle, mas confira paridade ao mexer.
+- Migrations agora são geradas por **drizzle-kit** (`apps/server/drizzle/{sqlite,pg}/`)
+  e aplicadas pelo migrator do drizzle-orm. O runner manual (`db/migrations/*.ts`,
+  tabela `_migrations`) foi removido; o baseline adota bancos legados e derruba
+  `_migrations`.
+- Índices únicos (`idx_opcao_md5`, `idx_leitura_op_id`) estão nos schemas Drizzle
+  e no baseline gerado — confira paridade ao mexer.
 - Ordenação em `/registros` é **client-side apenas da página atual** (backend
   pagina com `LIMIT/OFFSET`).
 - Sem autenticação por padrão (rede local assumida).
