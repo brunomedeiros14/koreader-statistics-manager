@@ -8,10 +8,14 @@ import {
   type SerieItem,
 } from "../components/StatPaineis";
 import { useApi } from "../hooks/useApi";
-import { fmtDuracao, fmtInt } from "../lib/format";
+import { intervaloUtcDoDia } from "../lib/calendario";
+import { fmtDia, fmtDuracao, fmtInt } from "../lib/format";
 
 export const Route = createFileRoute("/estatisticas")({
   component: EstatisticasPage,
+  validateSearch: (search: Record<string, unknown>) => ({
+    dia: typeof search.dia === "string" ? search.dia : undefined,
+  }),
 });
 
 const mesCurto = (mes: string): string => {
@@ -43,7 +47,16 @@ const porMesItems = (
   }));
 
 function EstatisticasPage() {
-  const stats = useApi(apiStats);
+  const { dia } = Route.useSearch();
+  const intervalo = dia ? intervaloUtcDoDia(dia) : null;
+  const params = intervalo
+    ? new URLSearchParams({
+        data_inicio: intervalo.inicio,
+        data_fim: intervalo.fim,
+      })
+    : undefined;
+
+  const stats = useApi(() => apiStats(params), [dia]);
   const dados = stats.dados;
 
   return (
@@ -55,6 +68,22 @@ function EstatisticasPage() {
           O que o caderno soma — sem excesso.
         </p>
       </header>
+
+      {intervalo ? (
+        <div className="card mb-6 flex flex-wrap items-center justify-between gap-3 p-4">
+          <p className="text-sm text-tinta-2">
+            Mostrando apenas o dia{" "}
+            <strong className="text-tinta">{fmtDia(dia!)}</strong>.
+          </p>
+          <Link
+            to="/estatisticas"
+            search={{ dia: undefined }}
+            className="btn btn-outline h-8 px-3"
+          >
+            Ver tudo
+          </Link>
+        </div>
+      ) : null}
 
       {stats.carregando ? (
         <div className="card mb-6 p-8 text-center text-sm text-tinta-2">

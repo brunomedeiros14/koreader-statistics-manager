@@ -6,7 +6,7 @@ import { apiListaLeitura } from "../api";
 import { BannerErro } from "../components/BannerErro";
 import { useApi } from "../hooks/useApi";
 import { minutosPorDiaLocal } from "../lib/calendario";
-import { fmtDuracao, paraUtcData } from "../lib/format";
+import { fmtDia, fmtDuracao, paraUtcData } from "../lib/format";
 
 export const Route = createFileRoute("/calendario")({
   component: CalendarioPage,
@@ -90,12 +90,19 @@ function CalendarioPage() {
     const minutos = minutosPorDia.get(k);
     const lido = minutos !== undefined;
     const ehHoje = k === chaveHoje;
+    const tempo = minutos !== undefined ? `${Math.round(minutos)}'` : "sem leitura";
     celulas.push(
-      <div
+      <Link
         key={d}
+        to="/estatisticas"
+        search={{ dia: k }}
+        title={`Ver estatísticas de ${fmtDia(k)} — ${tempo}`}
+        aria-label={`Ver estatísticas de ${fmtDia(k)}`}
         className={
-          "flex h-11 flex-col items-center justify-center gap-1 rounded-lg font-mono text-xs md:h-14 md:text-sm " +
-          (lido ? "bg-fita-suave text-tinta" : "text-tinta-2")
+          "flex h-11 flex-col items-center justify-center gap-1 rounded-lg font-mono text-xs transition-colors md:h-14 md:text-sm " +
+          (lido
+            ? "bg-fita-suave text-tinta hover:bg-fita/20"
+            : "text-tinta-2 hover:bg-papel-3")
         }
       >
         <span
@@ -113,7 +120,7 @@ function CalendarioPage() {
         <span className="text-[0.56rem] leading-none text-tinta-2">
           {minutos !== undefined ? `${Math.round(minutos)}'` : "\u00a0"}
         </span>
-      </div>,
+      </Link>,
     );
   }
 

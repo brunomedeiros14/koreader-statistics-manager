@@ -48,6 +48,13 @@ export const idQuerySchema = Type.Object({
   id: Type.Optional(Type.String()),
 });
 
+// Filtro opcional do GET /api/stats. As datas são instantes UTC canônicos
+// ("YYYY-MM-DDTHH:MM:SSZ"); o cliente converte o recorte local antes de chamar.
+export const statsQuerySchema = Type.Object({
+  data_inicio: Type.Optional(Type.String()),
+  data_fim: Type.Optional(Type.String()),
+});
+
 export const livroConfigSchema = Type.Object({
   titulo: Type.String(),
   md5: Type.String(),

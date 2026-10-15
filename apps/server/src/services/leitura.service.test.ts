@@ -216,3 +216,46 @@ describe("timestamps UTC (A.1/C.3)", () => {
     expect(r3?.updatedAt).not.toBe(antes);
   });
 });
+
+describe("stats com filtro por intervalo", () => {
+  it("recorta os agregados por data_inicio/data_fim", async () => {
+    await criarLeitura(
+      {
+        ...payload,
+        op_id: "op-stats-a",
+        data_hora_1: "2027-03-10T05:00:00Z",
+        data_hora_2: "2027-03-10T06:00:00Z",
+      },
+      "web",
+    );
+    await criarLeitura(
+      {
+        ...payload,
+        op_id: "op-stats-b",
+        data_hora_1: "2027-03-11T05:00:00Z",
+        data_hora_2: "2027-03-11T07:00:00Z",
+      },
+      "web",
+    );
+
+    const doDia = await repo.stats({
+      data_inicio: "2027-03-10T00:00:00Z",
+      data_fim: "2027-03-10T23:59:59Z",
+    });
+    expect(doDia.total).toBe(1);
+    expect(doDia.duracao_total_horas).toBeCloseTo(1);
+
+    const doMes = await repo.stats({
+      data_inicio: "2027-03-01T00:00:00Z",
+      data_fim: "2027-03-31T23:59:59Z",
+    });
+    expect(doMes.total).toBe(2);
+    expect(doMes.por_dia.map((d) => d.dia)).toEqual([
+      "2027-03-10",
+      "2027-03-11",
+    ]);
+
+    const tudo = await repo.stats();
+    expect(tudo.total).toBeGreaterThan(doMes.total);
+  });
+});

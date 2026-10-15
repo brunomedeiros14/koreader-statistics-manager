@@ -38,6 +38,17 @@ export const isoLocal = (v: string): string => {
   );
 };
 
+// "YYYY-MM-DD" -> human-readable pt-BR date, no timezone shifting.
+export const fmtDia = (dia: string): string => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dia);
+  if (!m) return dia;
+  return new Date(
+    Number(m[1]),
+    Number(m[2]) - 1,
+    Number(m[3]),
+  ).toLocaleDateString("pt-BR");
+};
+
 // Human-readable pt-BR "dd/mm/yyyy hh:mm".
 export const fmtLocal = (v: string): string => {
   const d = new Date(v);

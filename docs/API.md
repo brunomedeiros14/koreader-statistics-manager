@@ -108,7 +108,15 @@ Exporta CSV (RFC 4180 + BOM UTF-8) com os mesmos filtros do GET `/api/leitura`
 ## Estatísticas
 
 ### `GET /api/stats`
-Agregados globais + séries.
+Agregados globais + séries. Aceita filtro opcional por intervalo de
+`data_hora_1` (instantes UTC canônicos), usado pelo calendário para abrir o
+recorte de um dia.
+
+Query params (todos opcionais):
+| Param | Tipo | Descrição |
+| --- | --- | --- |
+| `data_inicio` | string UTC | `data_hora_1 >=` valor. |
+| `data_fim` | string UTC | `data_hora_1 <=` valor. |
 ```json
 {
   "total": 0, "primeira_data": "", "ultima_data": "",

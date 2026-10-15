@@ -63,6 +63,6 @@ export interface Repo {
   inserirLeitura(v: LeituraInsert): Promise<number>;
   atualizarLeitura(id: number, patch: Partial<LeituraInsert>): Promise<void>;
 
-  // estatísticas agregadas
-  stats(): Promise<StatsResponse>;
+  // estatísticas agregadas (opcionalmente recortadas por data/outros filtros)
+  stats(filtros?: FiltrosLeitura): Promise<StatsResponse>;
 }

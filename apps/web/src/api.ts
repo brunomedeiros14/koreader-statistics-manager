@@ -68,4 +68,7 @@ export const apiPatchLeitura = (
 export const apiDeleteLeitura = (id: number): Promise<MutacaoResponse> =>
   json(`/api/leitura?id=${id}`, { method: "DELETE" });
 
-export const apiStats = (): Promise<StatsResponse> => json("/api/stats");
+export const apiStats = (params?: URLSearchParams): Promise<StatsResponse> => {
+  const qs = params?.toString();
+  return json(`/api/stats${qs ? `?${qs}` : ""}`);
+};

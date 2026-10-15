@@ -1,6 +1,10 @@
 import { describe, expect, it } from "bun:test";
 
-import { chaveDiaLocal, minutosPorDiaLocal } from "./calendario";
+import {
+  chaveDiaLocal,
+  intervaloUtcDoDia,
+  minutosPorDiaLocal,
+} from "./calendario";
 
 // Monta o instante UTC correspondente a um relógio local (meses 0-based).
 const isoLocal = (
@@ -61,5 +65,23 @@ describe("minutosPorDiaLocal", () => {
       { data_hora_1: "não é data", data_hora_2: "2026-01-10T10:00:00Z" },
     ]);
     expect(mapa.size).toBe(0);
+  });
+});
+
+describe("intervaloUtcDoDia", () => {
+  it("cobre o dia local inteiro", () => {
+    const r = intervaloUtcDoDia("2026-01-15");
+    expect(r).not.toBeNull();
+    expect(new Date(r!.inicio).getHours()).toBe(0);
+    expect(new Date(r!.fim).getHours()).toBe(23);
+    expect(new Date(r!.inicio).getDate()).toBe(15);
+    expect(new Date(r!.fim).getDate()).toBe(15);
+  });
+
+  it("rejeita datas malformadas", () => {
+    expect(intervaloUtcDoDia("15/01/2026")).toBeNull();
+    expect(intervaloUtcDoDia("2026-13-01")).toBeNull();
+    expect(intervaloUtcDoDia("2026-02-30")).toBeNull();
+    expect(intervaloUtcDoDia("")).toBeNull();
   });
 });

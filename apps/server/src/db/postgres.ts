@@ -12,6 +12,7 @@ import type {
 
 import { DB_POSTGRES } from "./config";
 import { buildOrderBy, buildWhere, DURACAO_PG } from "./filtros";
+import type { FiltrosLeitura } from "./filtros";
 import { runMigrationsPg } from "./migrations/pg";
 import * as schema from "./schema/pg";
 import type { LivroEncontrado, Repo } from "./types";
@@ -199,7 +200,9 @@ export const criarRepoPostgres = async (): Promise<Repo> => {
         .where(eq(schema.leitura.id, id));
     },
 
-    async stats() {
+    async stats(filtros: FiltrosLeitura = {}) {
+      const where = buildWhere(filtros);
+
       const g = (
         await db.execute(sql`
           SELECT COUNT(*) AS total,
@@ -214,14 +217,14 @@ export const criarRepoPostgres = async (): Promise<Repo> => {
                  COALESCE(ROUND(CAST(AVG(EXTRACT(EPOCH FROM (data_hora_2::timestamptz - data_hora_1::timestamptz))) / 3600 AS numeric), 2), 0) AS duracao_media_horas,
                  ${horasPg} AS duracao_total_horas,
                  COALESCE(SUM(CASE WHEN numero_2 >= numero_1 THEN numero_2 - numero_1 + 1 ELSE 0 END), 0) AS paginas_lidas
-          FROM leitura
+          FROM leitura l ${where}
         `)
       ).rows[0] as Record<string, string | number | null>;
 
       const tipo = (
         await db.execute(sql`
           SELECT opcao_id, tipo, COUNT(*) AS n, ${horasPg} AS horas
-          FROM leitura GROUP BY opcao_id, tipo ORDER BY n DESC
+          FROM leitura l ${where} GROUP BY opcao_id, tipo ORDER BY n DESC
         `)
       ).rows as Array<Record<string, string | number | null>>;
 
@@ -231,7 +234,7 @@ export const criarRepoPostgres = async (): Promise<Repo> => {
                  COUNT(*) AS n,
                  ${horasPg} AS horas,
                  COALESCE(SUM(numero_1), 0) AS soma_num1
-          FROM leitura GROUP BY dia ORDER BY dia ASC
+          FROM leitura l ${where} GROUP BY dia ORDER BY dia ASC
         `)
       ).rows as Array<Record<string, string | number | null>>;
 
@@ -240,7 +243,7 @@ export const criarRepoPostgres = async (): Promise<Repo> => {
           SELECT substr(data_hora_1, 1, 7) AS mes,
                  COUNT(*) AS n,
                  ${horasPg} AS horas
-          FROM leitura GROUP BY mes ORDER BY mes ASC
+          FROM leitura l ${where} GROUP BY mes ORDER BY mes ASC
         `)
       ).rows as Array<Record<string, string | number | null>>;
 
