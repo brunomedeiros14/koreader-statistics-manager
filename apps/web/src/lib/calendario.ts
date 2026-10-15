@@ -7,6 +7,13 @@ type Sessao = Pick<LeituraRegistro, "data_hora_1" | "data_hora_2">;
 // Recorte UTC (início/fim do dia local) para uma data "YYYY-MM-DD". É o que o
 // filtro da API entende: os limites já vêm no fuso do navegador. Retorna null
 // se a data for inválida.
+export const diaDeslocado = (dia: string, delta: number): string | null => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dia);
+  if (!m) return null;
+  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]) + delta);
+  return chaveDiaLocal(d);
+};
+
 export const intervaloUtcDoDia = (
   dia: string,
 ): { inicio: string; fim: string } | null => {

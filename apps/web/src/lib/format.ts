@@ -49,6 +49,16 @@ export const fmtDia = (dia: string): string => {
   ).toLocaleDateString("pt-BR");
 };
 
+// Human-readable local "HH:MM" (empty string when unparseable).
+export const fmtHora = (v: string): string => {
+  const d = new Date(v);
+  if (isNaN(d.getTime())) return "";
+  return d.toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
 // Human-readable pt-BR "dd/mm/yyyy hh:mm".
 export const fmtLocal = (v: string): string => {
   const d = new Date(v);

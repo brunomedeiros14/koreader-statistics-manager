@@ -3,6 +3,7 @@ import { describe, expect, it } from "bun:test";
 import {
   fmtDec,
   fmtDuracao,
+  fmtHora,
   fmtInt,
   fmtLocal,
   fmtTempo,
@@ -40,6 +41,15 @@ describe("isoLocal", () => {
 describe("fmtLocal", () => {
   it("retorna o valor original quando não é data válida", () => {
     expect(fmtLocal("abc")).toBe("abc");
+  });
+});
+
+describe("fmtHora", () => {
+  it("formata a hora local em HH:MM", () => {
+    expect(fmtHora(new Date(2026, 0, 5, 9, 7).toISOString())).toBe("09:07");
+  });
+  it("retorna vazio para valor inválido", () => {
+    expect(fmtHora("abc")).toBe("");
   });
 });
 

@@ -1,15 +1,17 @@
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 
-import { apiStats } from "../api";
+import { apiListaLeitura, apiStats } from "../api";
 import { BannerErro } from "../components/BannerErro";
+import { DetalhesSessao } from "../components/DetalhesSessao";
 import {
   SerieComBarras,
   StatCard,
   type SerieItem,
 } from "../components/StatPaineis";
 import { useApi } from "../hooks/useApi";
-import { intervaloUtcDoDia } from "../lib/calendario";
-import { fmtDia, fmtDuracao, fmtInt } from "../lib/format";
+import { diaDeslocado, intervaloUtcDoDia } from "../lib/calendario";
+import { fmtDia, fmtDuracao, fmtHora, fmtInt, minutosEntre } from "../lib/format";
 
 export const Route = createFileRoute("/estatisticas")({
   component: EstatisticasPage,
@@ -59,6 +61,26 @@ function EstatisticasPage() {
   const stats = useApi(() => apiStats(params), [dia]);
   const dados = stats.dados;
 
+  const lista = useApi(
+    () =>
+      intervalo
+        ? apiListaLeitura(
+            new URLSearchParams({
+              data_inicio: intervalo.inicio,
+              data_fim: intervalo.fim,
+              limit: "500",
+              sort: "data_hora_1",
+              dir: "asc",
+            }),
+          )
+        : Promise.resolve(null),
+    [dia],
+  );
+  const registros = lista.dados?.registros ?? [];
+
+  const anterior = dia ? diaDeslocado(dia, -1) : null;
+  const proximo = dia ? diaDeslocado(dia, 1) : null;
+
   return (
     <div>
       <header className="mb-7">
@@ -69,12 +91,31 @@ function EstatisticasPage() {
         </p>
       </header>
 
-      {intervalo ? (
+      {dia && intervalo ? (
         <div className="card mb-6 flex flex-wrap items-center justify-between gap-3 p-4">
-          <p className="text-sm text-tinta-2">
-            Mostrando apenas o dia{" "}
-            <strong className="text-tinta">{fmtDia(dia!)}</strong>.
-          </p>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/estatisticas"
+              search={{ dia: anterior ?? undefined }}
+              className="btn-icone"
+              title="Dia anterior"
+              aria-label="Dia anterior"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Link>
+            <span className="min-w-[9rem] text-center font-mono text-sm text-tinta">
+              {fmtDia(dia)}
+            </span>
+            <Link
+              to="/estatisticas"
+              search={{ dia: proximo ?? undefined }}
+              className="btn-icone"
+              title="Próximo dia"
+              aria-label="Próximo dia"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Link>
+          </div>
           <Link
             to="/estatisticas"
             search={{ dia: undefined }}
@@ -110,13 +151,19 @@ function EstatisticasPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="card">
-          <div className="border-b border-linha px-4 py-3">
-            <h2 className="text-sm font-semibold text-tinta">Por mês</h2>
+      <div
+        className={
+          "grid grid-cols-1 gap-4 " + (intervalo ? "" : "lg:grid-cols-2")
+        }
+      >
+        {intervalo ? null : (
+          <div className="card">
+            <div className="border-b border-linha px-4 py-3">
+              <h2 className="text-sm font-semibold text-tinta">Por mês</h2>
+            </div>
+            <SerieComBarras itens={porMesItems(dados?.por_mes ?? [])} />
           </div>
-          <SerieComBarras itens={porMesItems(dados?.por_mes ?? [])} />
-        </div>
+        )}
         <div className="card">
           <div className="border-b border-linha px-4 py-3">
             <h2 className="text-sm font-semibold text-tinta">Por livro</h2>
@@ -124,6 +171,52 @@ function EstatisticasPage() {
           <SerieComBarras itens={porLivroItems(dados?.por_tipo ?? [])} />
         </div>
       </div>
+
+      {intervalo ? (
+        <section className="card mt-6">
+          <div className="flex items-center justify-between border-b border-linha px-4 py-3">
+            <h2 className="text-sm font-semibold text-tinta">
+              Leituras do dia
+            </h2>
+            <span className="font-mono text-xs text-tinta-3">
+              {registros.length}{" "}
+              {registros.length === 1 ? "registro" : "registros"}
+            </span>
+          </div>
+          {lista.carregando ? (
+            <div className="px-4 py-8 text-center text-sm text-tinta-2">
+              Carregando…
+            </div>
+          ) : registros.length === 0 ? (
+            <div className="px-4 py-8 text-center text-sm text-tinta-2">
+              Nenhuma leitura neste dia.
+            </div>
+          ) : (
+            <ul className="divide-y divide-linha">
+              {registros.map((r) => (
+                <li
+                  key={r.id}
+                  className="flex flex-wrap items-center justify-between gap-x-5 gap-y-1 px-4 py-3"
+                >
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-tinta">
+                    {r.titulo || "—"}
+                  </span>
+                  <span className="font-mono text-xs text-tinta-2">
+                    {fmtHora(r.data_hora_1)}–{fmtHora(r.data_hora_2)}
+                  </span>
+                  <span className="font-mono text-xs text-tinta-2">
+                    {fmtDuracao(minutosEntre(r.data_hora_1, r.data_hora_2))}
+                  </span>
+                  <span className="font-mono text-xs text-tinta-3">
+                    p. {r.numero_1}→{r.numero_2}
+                  </span>
+                  <DetalhesSessao registro={r} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ) : null}
 
       <footer className="mt-8 border-t border-linha pt-4 text-sm text-tinta-3">
         Dia a dia, leve o caderno do mês{" "}

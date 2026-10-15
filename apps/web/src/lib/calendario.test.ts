@@ -2,6 +2,7 @@ import { describe, expect, it } from "bun:test";
 
 import {
   chaveDiaLocal,
+  diaDeslocado,
   intervaloUtcDoDia,
   minutosPorDiaLocal,
 } from "./calendario";
@@ -65,6 +66,22 @@ describe("minutosPorDiaLocal", () => {
       { data_hora_1: "não é data", data_hora_2: "2026-01-10T10:00:00Z" },
     ]);
     expect(mapa.size).toBe(0);
+  });
+});
+
+describe("diaDeslocado", () => {
+  it("avança e retrocede um dia", () => {
+    expect(diaDeslocado("2026-01-15", 1)).toBe("2026-01-16");
+    expect(diaDeslocado("2026-01-15", -1)).toBe("2026-01-14");
+  });
+
+  it("atravessa a virada do mês", () => {
+    expect(diaDeslocado("2026-01-31", 1)).toBe("2026-02-01");
+    expect(diaDeslocado("2026-03-01", -1)).toBe("2026-02-28");
+  });
+
+  it("rejeita datas malformadas", () => {
+    expect(diaDeslocado("15/01/2026", 1)).toBeNull();
   });
 });
 
