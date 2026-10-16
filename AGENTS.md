@@ -95,12 +95,14 @@ de negócio, retorna objeto-resultado) → `db` (`repo`) → adaptador de dialet
 - **`db/filtros.ts`**: `buildWhere` compartilhado (alias `l`, então a consulta
   base DEVE ser `FROM leitura l`), `buildOrderBy` (whitelist de colunas),
   expressões de duração por dialeto (`DURACAO_SQLITE`/`DURACAO_PG`).
-- **`db/config.ts`**: único lugar que lê `process.env` de banco
+- **`db/config.ts`**: único lugar de **runtime** que lê `process.env` de banco
   (`DB_DRIVER`, `DB_SQLITE_PATH`, `DB_POSTGRES_*`). Não leia env de banco em outro
-  módulo.
+  módulo em runtime. Exceção: `drizzle.config.ts` (ferramenta de build) lê
+  `DB_DRIVER` para escolher o dialeto.
 - **`db/schema/{sqlite,pg}.ts`**: schema Drizzle é a **fonte de verdade**. As
-  migrations são geradas por **drizzle-kit** (`apps/server/drizzle.{sqlite,pg}.config.ts`
-  → `apps/server/drizzle/{sqlite,pg}/`) e aplicadas em runtime pelo migrator do
+  migrations são geradas por **drizzle-kit** com um único config
+  (`apps/server/drizzle.config.ts`, dialeto via `DB_DRIVER`), com saída em
+  `apps/server/drizzle/{sqlite,pg}/`, e aplicadas em runtime pelo migrator do
   drizzle-orm (journal `__drizzle_migrations`). Fluxo: edite o schema → rode
   `bun run db:generate` → revise o SQL. **Nunca edite uma migration já aplicada**;
   gere um novo passo. O baseline `0000_inicial` é mantido **idempotente**
@@ -166,10 +168,13 @@ de negócio, retorna objeto-resultado) → `db` (`repo`) → adaptador de dialet
 ## 7. Testes
 
 - Runner: `bun test`. Arquivos `*.test.ts` ao lado do código-fonte.
+- `bunfig.toml` + `test-preload.ts` fixam `DB_DRIVER=sqlite` antes de qualquer
+  teste, para a suíte não vazar para um Postgres de um `.env` local.
 - `libs/common`: testes puros de validação/domínio.
 - `apps/server`: testes de service batem no banco real — **defina
-  `DB_SQLITE_PATH` para um arquivo temporário ANTES de importar `./db`**
-  (ver `services/leitura.service.test.ts`; use `mkdtempSync`).
+  `DB_DRIVER=sqlite` e `DB_SQLITE_PATH` para um arquivo temporário ANTES de
+  importar `./db`** (ver `services/leitura.service.test.ts`; use `mkdtempSync`),
+  senão um `.env` com `DB_DRIVER=postgres` vaza para o teste.
 - `apps/web`: testes puros de helpers em `src/lib/*.test.ts`.
 - Sempre rode `bun run typecheck` + `bun test` antes de concluir. Se alterar só
   web, `bun run build` valida a geração de rotas.

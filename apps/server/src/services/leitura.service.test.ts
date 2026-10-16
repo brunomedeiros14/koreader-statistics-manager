@@ -5,6 +5,8 @@ import { join } from "path";
 import type { LeituraMutacao } from "./leitura.service";
 
 // Isolated DB per run: the db config is read at import time, so set it first.
+// Force sqlite so the test is independent of any ambient .env (e.g. Postgres).
+process.env.DB_DRIVER = "sqlite";
 process.env.DB_SQLITE_PATH = join(
   mkdtempSync(join(tmpdir(), "leitura-test-")),
   "leitura.sqlite3",

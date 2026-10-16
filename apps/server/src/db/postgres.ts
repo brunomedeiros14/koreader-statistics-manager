@@ -1,8 +1,8 @@
 import { eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
-import { Pool } from "pg";
 import { join } from "path";
+import { Pool } from "pg";
 
 import type {
   LeituraExportRow,
@@ -13,15 +13,15 @@ import type {
 } from "@leitura/common";
 
 import { DB_POSTGRES } from "./config";
-import { buildOrderBy, buildWhere, DURACAO_PG } from "./filtros";
 import type { FiltrosLeitura } from "./filtros";
+import { buildOrderBy, buildWhere, DURACAO_PG } from "./filtros";
 import * as schema from "./schema/pg";
 import type { LivroEncontrado, Repo } from "./types";
 
 // Adaptador Postgres (node-postgres + drizzle). Diferente do SQLite, o cliente
 // é assíncrono e o dialeto usa `$n`, SERIAL/BOOLEAN e funções de data próprias.
 export const criarRepoPostgres = async (): Promise<Repo> => {
-  const pool = new Pool({
+    const pool = new Pool({
     host: DB_POSTGRES.host,
     port: DB_POSTGRES.port,
     user: DB_POSTGRES.user,
@@ -100,7 +100,9 @@ export const criarRepoPostgres = async (): Promise<Repo> => {
           oculto: schema.opcao.oculto,
         })
         .from(schema.opcao)
-        .orderBy(schema.opcao.posicao, schema.opcao.id) satisfies Promise<Livro[]>;
+        .orderBy(schema.opcao.posicao, schema.opcao.id) satisfies Promise<
+        Livro[]
+      >;
     },
 
     async substituirLivros(livros) {

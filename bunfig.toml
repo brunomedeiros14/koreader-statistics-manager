@@ -1,0 +1,4 @@
+# Testes rodam sempre em SQLite temporário, independentes de um .env local
+# (ex.: DB_DRIVER=postgres) — ver test-preload.ts.
+[test]
+preload = ["./test-preload.ts"]
